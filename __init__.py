@@ -19,6 +19,15 @@ def home():
         return render_template('landing.html')
     else:
         return "Logged in"
+@app.route('/login_page')
+def login_page():
+    if not session.get('logged_in'):
+        return render_template('login.html')
+    else:
+        return "Logged in"
+@app.route('/register_page')
+def register_page():
+    return render_template('register.html')
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     # Connect to DB

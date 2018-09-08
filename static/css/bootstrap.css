@@ -6833,4 +6833,8 @@ box-shadow: none;
   display: block;
 	margin-top: 12px;
 }
+.vertical-align {
+    display: flex;
+    align-items: center;
+}
 /*# sourceMappingURL=bootstrap.css.map */
