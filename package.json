@@ -1,0 +1,24 @@
+{
+  "name": "honours",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "bcrypt-nodejs": "0.0.3",
+    "bootstrap-validator": "^0.11.9"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MCKALISTAIR/Honours.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MCKALISTAIR/Honours/issues"
+  },
+  "homepage": "https://github.com/MCKALISTAIR/Honours#readme"
+}

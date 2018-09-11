@@ -28,7 +28,7 @@ def login_page():
 @app.route('/register_page')
 def register_page():
     return render_template('register.html')
-@app.route('/login', methods=['POST', 'GET'])
+@app.route('/login', methods=['POST'])
 def login():
     # Connect to DB
     users = mongo.db.users
@@ -42,7 +42,7 @@ def login():
             session['username'] = request.form['username']
             return redirect(url_for('login'))
     # If no user is logged in redirect them to the login page
-    return redirect(url_for('login')) 
+    return redirect(url_for('login'))
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
@@ -63,4 +63,5 @@ def register():
 	return render_template('register.html')
 
 if __name__ == "__main__":
+    app.secret_key = 'shhhhhhhh'
     app.run(ssl_context='adhoc', debug=True)
