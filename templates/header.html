@@ -57,7 +57,27 @@
 </body>
 
 
-
+<!--This creates the footer, it works however also looks horrible but thats not the most pressing issue right now !-->
+<!--
+<div class="footer" style="background-color:lightgrey; padding-top:1%; margin-top:1%;">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm" style="text-align:center;">
+          <p class="text-muted">
+          <a class="text-muted" href="/">Home</a>
+            //
+          <a class="text-muted"href="/about">About</a>
+        </p>
+        </div>
+        <div class="col-sm" style="text-align:center;">
+          {% if session.get('status', None) == "user": %}
+            <a href="/logout" class ="btn btn-secondary"  style="margin-top:-1.8%;">Logout</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+</div>
+!-->
 
 
 

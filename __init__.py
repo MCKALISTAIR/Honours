@@ -28,39 +28,65 @@ def login_page():
 @app.route('/register_page')
 def register_page():
     return render_template('register.html')
+@app.route('/landing')
+def landing():
+    return render_template('landing.html')
+
 @app.route('/login', methods=['POST'])
 def login():
-    # Connect to DB
     users = mongo.db.users
-    # Variable to store information of a logged in user.
     logged_user = users.find_one({'name' : request.form['username']})
-
-    # If a user is loged in:
     if logged_user:
-        # Compare inputted password with hashed password store in the DB
         if bcrypt.hashpw(request.form['password'].encode('utf-8'), logged_user['password'].encode('utf-8')) == logged_user['password'].encode('utf-8'):
             session['username'] = request.form['username']
-            return redirect(url_for('login'))
-    # If no user is logged in redirect them to the login page
+            session['user'] = "User"
+            session['status'] = "user"    ###NEED TO GET THIS BIT DIFFERING BETWEEN MANAGER AND USER, PROBS HAVE THE SYSTEM CHECK ACCOUNT PERMS
+            return redirect(url_for('landing'))
     return redirect(url_for('login'))
-
+@app.route("/managerlanding", methods=['POST','GET'])
+def managerlanding():
+    if session.get('status', None) != "manager":
+        abort(403)
+    else:
+        return render_template('managerlanding.html')
+@app.route("/userlanding", methods=['POST','GET'])
+def userlanding():
+    if session.get('status', None) != "user":
+        abort(403)
+    else:
+        return render_template('userlanding.html')
 @app.route('/register', methods=['POST', 'GET'])
 def register():
     if request.method == 'POST':
-        # Connect to the DB
         users = mongo.db.users
-        # Variable for checking if a user is already registered
         existing_user = users.find_one({'name' : request.form['username']})
 
         if existing_user is None:
-            # Hash the inputted password
-            hashpass = bcrypt.hashpw(request.form['password'].encode('utf-8'), bcrypt.gensalt())
-            # Store the username and password in the DB
-            users.insert({'name' : request.form['username'], 'password' : hashpass})
-            # Add user to session
+            hashdpw = bcrypt.hashpw(request.form['password'].encode('utf-8'), bcrypt.gensalt())
+            users.insert({'name' : request.form['username'], 'password' : hashdpw})
             session['username'] = request.form['username']
-            return redirect(url_for('login'))
-	return render_template('register.html')
+            session['name'] = request.form['name']
+            return redirect(url_for('landing'))
+	return render_template('landing.html')
+
+@app.route('/logout/')
+def logout():
+    session['user'] = ""
+    session['status'] = ""
+    flash('You have been logged out')
+    return redirect(url_for('landing'))
+
+@app.errorhandler(403)
+def page_not_found(error4):
+    return render_template('403.html'), 403
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('500.html'), 500
 
 if __name__ == "__main__":
     app.secret_key = 'shhhhhhhh'
