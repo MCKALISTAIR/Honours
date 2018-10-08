@@ -6758,7 +6758,7 @@ button.close {
 * {
 box-sizing: border-box;
 }
- 
+
 *:focus {
 	outline: none;
 }
@@ -6776,19 +6776,19 @@ background-color: #FFF;
 padding: 20px;
 border-radius: 5px
 }
- 
+
 .app-title {
 text-align: center;
 color: #777;
 }
- 
+
 .login-form {
 text-align: center;
 }
 .control-group {
 margin-bottom: 10px;
 }
- 
+
 input {
 text-align: center;
 background-color: #ECF0F1;
@@ -6800,12 +6800,12 @@ padding: 10px 0;
 width: 250px;
 transition: border .5s;
 }
- 
+
 input:focus {
 border: 2px solid #3498DB;
 box-shadow: none;
 }
- 
+
 .btn {
   border: 2px solid transparent;
   background: #3498DB;
@@ -6822,11 +6822,21 @@ box-shadow: none;
   width: 250px;
   margin: 0 auto;
 }
- 
+.row {
+  width: 100%;
+  /*margin: 0 auto;*/
+    text-align: center;
+}
+.block {
+  width: 100px;
+  /*float: left;*/
+    display: inline-block;
+    zoom: 1;
+}
 .btn:hover {
   background-color: #2980B9;
 }
- 
+
 .login-link {
   font-size: 12px;
   color: #444;
@@ -6836,5 +6846,13 @@ box-shadow: none;
 .vertical-align {
     display: flex;
     align-items: center;
+}
+.checkbox-inline {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+}
+input[type=checkbox] {
+    margin: 6px 0 0;
 }
 /*# sourceMappingURL=bootstrap.css.map */

@@ -1,6 +1,12 @@
 from flask import Flask
 from flask import Flask, flash, redirect, render_template, request, session, abort, url_for
 from flask_pymongo import PyMongo
+try:
+    # for Python2
+    from Tkinter import *
+except ImportError:
+    # for Python3
+    from tkinter import *
 import bcrypt
 import random
 import string
@@ -49,6 +55,12 @@ def managerlanding():
         abort(403)
     else:
         return render_template('managerlanding.html')
+@app.route("/workeravailability", methods=['POST','GET'])
+def workeravailability():
+    if session.get('status', None) == "manager":
+        abort(403)
+    else:
+        return render_template('availability.html')
 @app.route("/userlanding", methods=['POST','GET'])
 def userlanding():
     if session.get('status', None) != "user":
