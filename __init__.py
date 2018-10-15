@@ -13,6 +13,7 @@ import string
 import pyperclip
 import bcrypt
 import os
+import json
 app = Flask(__name__)
 
 app.config['MONGO_DBNAME'] = 'Users'
@@ -37,7 +38,11 @@ def register_page():
 @app.route('/landing')
 def landing():
     return render_template('landing.html')
-
+@app.route('/submnnnnnit/', methods=['POST'])
+def submitav():
+    with open('/Users/alistairmckay/Honours/test.txt', 'w') as f:
+            f.write(str("It works!"))
+    return render_template('landing.html')
 @app.route('/login', methods=['POST'])
 def login():
     users = mongo.db.users
@@ -45,22 +50,26 @@ def login():
     if logged_user:
         if bcrypt.hashpw(request.form['password'].encode('utf-8'), logged_user['password'].encode('utf-8')) == logged_user['password'].encode('utf-8'):
             session['username'] = request.form['username']
+            usern = session['username']
+            #{% include 'availability.html' with usern = session['username'] %}
             session['user'] = "User"
             session['status'] = "user"    ###NEED TO GET THIS BIT DIFFERING BETWEEN MANAGER AND USER, PROBS HAVE THE SYSTEM CHECK ACCOUNT PERMS
             return redirect(url_for('landing'))
     return redirect(url_for('login'))
 @app.route("/managerlanding", methods=['POST','GET'])
 def managerlanding():
-    if session.get('status', None) != "manager":
+    if session.get('status', None) == "manager":
         abort(403)
     else:
         return render_template('managerlanding.html')
 @app.route("/workeravailability", methods=['POST','GET'])
 def workeravailability():
+    usern = session['username']
     if session.get('status', None) == "manager":
         abort(403)
     else:
-        return render_template('availability.html')
+        return render_template('availability.html', usern=usern)
+
 @app.route("/userlanding", methods=['POST','GET'])
 def userlanding():
     if session.get('status', None) != "user":
@@ -80,7 +89,20 @@ def register():
             session['name'] = request.form['name']
             return redirect(url_for('landing'))
 	return render_template('landing.html')
+@app.route('/submit/', methods=['POST', 'GET'])
+def sendavailability():
+    if request.method == 'POST':
+        users = mongo.db.users
+        usern = session['username']
+        existing_user = users.find_one({'name' : usern})
 
+        if existing_user:
+            if request.form.get('me'):
+                flash(usern)
+                me = "Yes"
+                users.insert({'Availability' : me})
+        return redirect(url_for('landing'))
+	return render_template('landing.html')
 @app.route('/logout/')
 def logout():
     session['user'] = ""
