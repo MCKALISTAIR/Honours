@@ -1,6 +1,17 @@
 from flask import Flask
 from flask import Flask, flash, redirect, render_template, request, session, abort, url_for
 from flask_pymongo import PyMongo
+from bson.objectid import ObjectId
+from pymongo import MongoClient
+try:
+    conn = MongoClient()
+    print("Connected successfully!!!")
+except:
+    print("Could not connect to MongoDB")
+db = conn.database
+
+# Created or Switched to collection names: my_gfg_collection
+collection = db.users
 try:
     # for Python2
     from Tkinter import *
@@ -19,7 +30,8 @@ app = Flask(__name__)
 app.config['MONGO_DBNAME'] = 'Users'
 app.config['MONGO_URI'] = 'mongodb://MCKALISTAIR:Uacpad923!@ds145412.mlab.com:45412/users'
 mongo = PyMongo(app)
-
+client = MongoClient('mongodb://MCKALISTAIR:Uacpad923!@ds145412.mlab.com:45412/users')
+db = client.users
 @app.route('/')
 def home():
     if not session.get('logged_in'):
@@ -51,7 +63,6 @@ def login():
         if bcrypt.hashpw(request.form['password'].encode('utf-8'), logged_user['password'].encode('utf-8')) == logged_user['password'].encode('utf-8'):
             session['username'] = request.form['username']
             usern = session['username']
-            #{% include 'availability.html' with usern = session['username'] %}
             session['user'] = "User"
             session['status'] = "user"    ###NEED TO GET THIS BIT DIFFERING BETWEEN MANAGER AND USER, PROBS HAVE THE SYSTEM CHECK ACCOUNT PERMS
             return redirect(url_for('landing'))
@@ -84,7 +95,7 @@ def register():
 
         if existing_user is None:
             hashdpw = bcrypt.hashpw(request.form['password'].encode('utf-8'), bcrypt.gensalt())
-            users.insert({'name' : request.form['username'], 'password' : hashdpw})
+            users.insert({'name' : request.form['username'], 'password' : hashdpw, 'Monday-Early' : 'Not set'})
             session['username'] = request.form['username']
             session['name'] = request.form['name']
             return redirect(url_for('landing'))
@@ -96,11 +107,8 @@ def sendavailability():
         usern = session['username']
         existing_user = users.find_one({'name' : usern})
 
-        if existing_user:
-            if request.form.get('me'):
-                flash(usern)
-                me = "Yes"
-                users.insert({'Availability' : me})
+        if request.form.get('me'):
+            users.update({'name':usern},{"$set":{'Monday-Early':'Yes'}})
         return redirect(url_for('landing'))
 	return render_template('landing.html')
 @app.route('/logout/')
