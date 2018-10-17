@@ -53,13 +53,15 @@ def landing():
 def login():
     users = mongo.db.users
     logged_user = users.find_one({'username' : request.form['username']})
+
     if logged_user:
         if bcrypt.hashpw(request.form['password'].encode('utf-8'), logged_user['password'].encode('utf-8')) == logged_user['password'].encode('utf-8'):
             session['username'] = request.form['username']
             usern = session['username']
             name = session['name']
+            Type = session['type']
             session['user'] = "User"
-            session['status'] = "user"    ###NEED TO GET THIS BIT DIFFERING BETWEEN MANAGER AND USER, PROBS HAVE THE SYSTEM CHECK ACCOUNT PERMS
+            session['status'] = "user"  ###NEED TO GET THIS BIT DIFFERING BETWEEN MANAGER AND USER, PROBS HAVE THE SYSTEM CHECK ACCOUNT PERMS
             return redirect(url_for('userlanding'))
     return redirect(url_for('login'))
 @app.route("/managerlanding", methods=['POST','GET'])
@@ -88,10 +90,12 @@ def register():
     if request.method == 'POST':
         users = mongo.db.users
         existing_user = users.find_one({'name' : request.form['username']})
-
+        if request.form['password'] != request.form['confirm_password']:
+            flash("Passwords did not match. Please enter passwords again.")
+            return redirect(url_for('register_page'))
         if existing_user is None:
             hashdpw = bcrypt.hashpw(request.form['password'].encode('utf-8'), bcrypt.gensalt())
-            users.insert({'username' : request.form['username'], 'name' : request.form['name'], 'password' : hashdpw, 'Monday-Early' : 'Not set', 'Monday-Late' : 'Not set', 'Tuesday-Early' : 'Not set', 'Tuesday-Late' : 'Not set', 'Wednesday-Early' : 'Not set', 'Wednesday-Late' : 'Not set', 'Thursday-Early' : 'Not set', 'Thursday-Late' : 'Not set', 'Friday-Early' : 'Not set', 'Friday-Late' : 'Not set', 'Saturday-Early' : 'Not set', 'Saturday-Late' : 'Not set', 'Sunday-Early' : 'Not set', 'Sunday-Late' : 'Not set' })
+            users.insert({'username' : request.form['username'], 'name' : request.form['name'], 'password' : hashdpw, 'Type' : 'User', 'Monday-Early' : 'Not set', 'Monday-Late' : 'Not set', 'Tuesday-Early' : 'Not set', 'Tuesday-Late' : 'Not set', 'Wednesday-Early' : 'Not set', 'Wednesday-Late' : 'Not set', 'Thursday-Early' : 'Not set', 'Thursday-Late' : 'Not set', 'Friday-Early' : 'Not set', 'Friday-Late' : 'Not set', 'Saturday-Early' : 'Not set', 'Saturday-Late' : 'Not set', 'Sunday-Early' : 'Not set', 'Sunday-Late' : 'Not set' })
             session['username'] = request.form['username']
             session['name'] = request.form['name']
             return redirect(url_for('landing'))
