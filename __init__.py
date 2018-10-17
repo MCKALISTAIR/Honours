@@ -4,15 +4,6 @@ from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 try:
-    conn = MongoClient()
-    print("Connected successfully!!!")
-except:
-    print("Could not connect to MongoDB")
-db = conn.database
-
-# Created or Switched to collection names: my_gfg_collection
-collection = db.users
-try:
     # for Python2
     from Tkinter import *
 except ImportError:
@@ -25,6 +16,14 @@ import pyperclip
 import bcrypt
 import os
 import json
+try:
+    conn = MongoClient()
+    print("Connected to MongoDB")
+except:
+    print("Could not connect to MongoDB")
+db = conn.database
+# Created or Switched to collection names:
+collection = db.users
 app = Flask(__name__)
 
 app.config['MONGO_DBNAME'] = 'Users'
@@ -50,22 +49,18 @@ def register_page():
 @app.route('/landing')
 def landing():
     return render_template('landing.html')
-@app.route('/submnnnnnit/', methods=['POST'])
-def submitav():
-    with open('/Users/alistairmckay/Honours/test.txt', 'w') as f:
-            f.write(str("It works!"))
-    return render_template('landing.html')
 @app.route('/login', methods=['POST'])
 def login():
     users = mongo.db.users
-    logged_user = users.find_one({'name' : request.form['username']})
+    logged_user = users.find_one({'username' : request.form['username']})
     if logged_user:
         if bcrypt.hashpw(request.form['password'].encode('utf-8'), logged_user['password'].encode('utf-8')) == logged_user['password'].encode('utf-8'):
             session['username'] = request.form['username']
             usern = session['username']
+            name = session['name']
             session['user'] = "User"
             session['status'] = "user"    ###NEED TO GET THIS BIT DIFFERING BETWEEN MANAGER AND USER, PROBS HAVE THE SYSTEM CHECK ACCOUNT PERMS
-            return redirect(url_for('landing'))
+            return redirect(url_for('userlanding'))
     return redirect(url_for('login'))
 @app.route("/managerlanding", methods=['POST','GET'])
 def managerlanding():
@@ -75,18 +70,19 @@ def managerlanding():
         return render_template('managerlanding.html')
 @app.route("/workeravailability", methods=['POST','GET'])
 def workeravailability():
-    usern = session['username']
+    name = session['name']
     if session.get('status', None) == "manager":
         abort(403)
     else:
-        return render_template('availability.html', usern=usern)
+        return render_template('availability.html', name=name)
 
 @app.route("/userlanding", methods=['POST','GET'])
 def userlanding():
+    name = session['name']
     if session.get('status', None) != "user":
         abort(403)
     else:
-        return render_template('userlanding.html')
+        return render_template('userlanding.html', name=name)
 @app.route('/register', methods=['POST', 'GET'])
 def register():
     if request.method == 'POST':
@@ -95,7 +91,7 @@ def register():
 
         if existing_user is None:
             hashdpw = bcrypt.hashpw(request.form['password'].encode('utf-8'), bcrypt.gensalt())
-            users.insert({'name' : request.form['username'], 'password' : hashdpw, 'Monday-Early' : 'Not set', 'Monday-Late' : 'Not set', 'Tuesday-Early' : 'Not set', 'Tuesday-Late' : 'Not set', 'Wednesday-Early' : 'Not set', 'Wednesday-Late' : 'Not set', 'Thursday-Early' : 'Not set', 'Thursday-Late' : 'Not set', 'Friday-Early' : 'Not set', 'Friday-Late' : 'Not set', 'Saturday-Early' : 'Not set', 'Saturday-Late' : 'Not set', 'Sunday-Early' : 'Not set', 'Sunday-Late' : 'Not set' })
+            users.insert({'username' : request.form['username'], 'name' : request.form['name'], 'password' : hashdpw, 'Monday-Early' : 'Not set', 'Monday-Late' : 'Not set', 'Tuesday-Early' : 'Not set', 'Tuesday-Late' : 'Not set', 'Wednesday-Early' : 'Not set', 'Wednesday-Late' : 'Not set', 'Thursday-Early' : 'Not set', 'Thursday-Late' : 'Not set', 'Friday-Early' : 'Not set', 'Friday-Late' : 'Not set', 'Saturday-Early' : 'Not set', 'Saturday-Late' : 'Not set', 'Sunday-Early' : 'Not set', 'Sunday-Late' : 'Not set' })
             session['username'] = request.form['username']
             session['name'] = request.form['name']
             return redirect(url_for('landing'))
@@ -105,69 +101,65 @@ def sendavailability():
     if request.method == 'POST':
         users = mongo.db.users
         usern = session['username']
-        existing_user = users.find_one({'name' : usern})
+        name = session['name']
+        existing_user = users.find_one({'username' : usern})
 
-        mondayearly = request.form.get('mon_early')
-        mondaylate = request.form.get('mon_late')
-
-        if mondayearly:
-            users.update({'name':usern},{"$set":{'Monday-Early':'Available'}})
-            flash(request.form.get('mon_early'))
+        if request.form.getlist('mon_early') == [u'mon_early']:
+            users.update({'username':usern},{"$set":{'Monday-Early':'Available'}})
         else:
-            users.update({'name':usern},{"$set":{'Monday-Early':'Not Available'}})
-            flash(request.form.get('mon_early'))
-        if mondaylate:
-            users.update({'name':usern},{"$set":{'Monday-Late':'Available'}})
+            users.update({'username':usern},{"$set":{'Monday-Early':'Not Available'}})
+        if request.form.getlist('mon_late') == [u'mon_late']:
+            users.update({'username':usern},{"$set":{'Monday-Late':'Available'}})
         else:
-            users.update({'name':usern},{"$set":{'Monday-Late':'Not Available'}})
-        if request.form.get('tue_early'):
-            users.update({'name':usern},{"$set":{'Tuesday-Early':'Available'}})
+            users.update({'username':usern},{"$set":{'Monday-Late':'Not Available'}})
+        if request.form.getlist('tue_early') == [u'tue_early']:
+            users.update({'username':usern},{"$set":{'Tuesday-Early':'Available'}})
         else:
-            users.update({'name':usern},{"$set":{'Tuesday-Early':'Not Available'}})
-        if request.form.get('tue_late'):
-            users.update({'name':usern},{"$set":{'Tuesday-Late':'Available'}})
+            users.update({'username':usern},{"$set":{'Tuesday-Early':'Not Available'}})
+        if request.form.getlist('tue_late') == [u'tue_late']:
+            users.update({'username':usern},{"$set":{'Tuesday-Late':'Available'}})
         else:
-            users.update({'name':usern},{"$set":{'Tuesday-Late':'Not Available'}})
-        if request.form.get('wed_early'):
-            users.update({'name':usern},{"$set":{'Wednesday-Early':'Available'}})
+            users.update({'username':usern},{"$set":{'Tuesday-Late':'Not Available'}})
+        if request.form.getlist('wed_early') == [u'wed_early']:
+            users.update({'username':usern},{"$set":{'Wednesday-Early':'Available'}})
         else:
-            users.update({'name':usern},{"$set":{'Wednesday-Early':'Not Available'}})
-        if request.form.get('wed_late'):
-            users.update({'name':usern},{"$set":{'Wednesday-Late':'Available'}})
+            users.update({'username':usern},{"$set":{'Wednesday-Early':'Not Available'}})
+        if request.form.getlist('wed_late') == [u'wed_late']:
+            users.update({'username':usern},{"$set":{'Wednesday-Late':'Available'}})
         else:
-            users.update({'name':usern},{"$set":{'Wednesday-Late':'Not Available'}})
-        if request.form.get('thur_early'):
-            users.update({'name':usern},{"$set":{'Thursday-Early':'Available'}})
+            users.update({'username':usern},{"$set":{'Wednesday-Late':'Not Available'}})
+        if request.form.getlist('thur_early') == [u'thur_early']:
+            users.update({'username':usern},{"$set":{'Thursday-Early':'Available'}})
         else:
-            users.update({'name':usern},{"$set":{'Thursday-Early':'Not Available'}})
-        if request.form.get('thur_late'):
-            users.update({'name':usern},{"$set":{'Thursday-Late':'Available'}})
+            users.update({'username':usern},{"$set":{'Thursday-Early':'Not Available'}})
+        if request.form.getlist('thur_late') == [u'thur_late']:
+            users.update({'username':usern},{"$set":{'Thursday-Late':'Available'}})
         else:
-            users.update({'name':usern},{"$set":{'Thursday-Late':'Not Available'}})
-        if request.form.get('fri_early'):
-            users.update({'name':usern},{"$set":{'Friday-Early':'Available'}})
+            users.update({'username':usern},{"$set":{'Thursday-Late':'Not Available'}})
+        if request.form.getlist('fri_early') == [u'fri_early']:
+            users.update({'username':usern},{"$set":{'Friday-Early':'Available'}})
         else:
-            users.update({'name':usern},{"$set":{'Friday-Early':'Not Available'}})
-        if request.form.get('fri_late'):
-            users.update({'name':usern},{"$set":{'Friday-Late':'Available'}})
+            users.update({'username':usern},{"$set":{'Friday-Early':'Not Available'}})
+        if request.form.getlist('fri_late') == [u'fri_late']:
+            users.update({'username':usern},{"$set":{'Friday-Late':'Available'}})
         else:
-            users.update({'name':usern},{"$set":{'Friday-Late':'Not Available'}})
-        if request.form.get('sat_early'):
-            users.update({'name':usern},{"$set":{'Saturday-Early':'Available'}})
+            users.update({'username':usern},{"$set":{'Friday-Late':'Not Available'}})
+        if request.form.getlist('sat_early') == [u'sat_early']:
+            users.update({'username':usern},{"$set":{'Saturday-Early':'Available'}})
         else:
-            users.update({'name':usern},{"$set":{'Saturday-Early':'Not Available'}})
-        if request.form.get('sat_late'):
-            users.update({'name':usern},{"$set":{'Saturday-Late':'Available'}})
+            users.update({'username':usern},{"$set":{'Saturday-Early':'Not Available'}})
+        if request.form.getlist('sat_late') == [u'sat_late']:
+            users.update({'username':usern},{"$set":{'Saturday-Late':'Available'}})
         else:
-            users.update({'name':usern},{"$set":{'Saturday-Late':'Not Available'}})
-        if request.form.get('sun_early'):
-            users.update({'name':usern},{"$set":{'Sunday-Early':'Available'}})
+            users.update({'username':usern},{"$set":{'Saturday-Late':'Not Available'}})
+        if request.form.getlist('sun_early') == [u'sun_early']:
+            users.update({'username':usern},{"$set":{'Sunday-Early':'Available'}})
         else:
-            users.update({'name':usern},{"$set":{'Sunday-Early':'Not Available'}})
-        if request.form.get('sun_late'):
-            users.update({'name':usern},{"$set":{'Sunday-Late':'Available'}})
+            users.update({'username':usern},{"$set":{'Sunday-Early':'Not Available'}})
+        if request.form.getlist('sun_late') == [u'sun_late']:
+            users.update({'username':usern},{"$set":{'Sunday-Late':'Available'}})
         else:
-            users.update({'name':usern},{"$set":{'Sunday-Late':'Not Available'}})
+            users.update({'username':usern},{"$set":{'Sunday-Late':'Not Available'}})
         return redirect(url_for('landing'))
 	return render_template('landing.html')
 @app.route('/logout/')
