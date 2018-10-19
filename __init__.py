@@ -59,7 +59,6 @@ def login():
             session['username'] = request.form['username']
             usern = session['username']
             name = session['name']
-            Type = session['type']
             session['user'] = "User"
             session['status'] = "user"  ###NEED TO GET THIS BIT DIFFERING BETWEEN MANAGER AND USER, PROBS HAVE THE SYSTEM CHECK ACCOUNT PERMS
             return redirect(url_for('userlanding'))
@@ -70,6 +69,15 @@ def managerlanding():
         abort(403)
     else:
         return render_template('managerlanding.html')
+@app.route("/permissions", methods=['POST','GET'])
+def permissions():
+    users = mongo.db.users
+    userss = users.find_one({'Type' : 'User'})
+    flash(userss)
+    if session.get('status', None) == "manager":
+        abort(403)
+    else:
+        return render_template('permissions.html')
 @app.route("/workeravailability", methods=['POST','GET'])
 def workeravailability():
     name = session['name']
