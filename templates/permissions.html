@@ -2,13 +2,22 @@
 {% block body %}
 <head>
   <title>Clockwork</title>
+
 </head>
 
 
 <div class="container-fluid">
       <p class="text-center">Account permission management</p>
+      <p>Hello, {{ current_usern }}</p>
+</div>
+<form action="/searchforuser/" method="POST">
+<div class="form-group has-feedback">
+    <input type="text" class="form-control" name="username" placeholder="Enter Username to search for" />
+    <i class="glyphicon glyphicon-search form-control-feedback"></i>
 </div>
 
-
-
+<div class="pull-right">
+<input type="submit" value="Search" class="btn btn-primary btn-large btn-block" >
+</div>
+</form>
 {% endblock %}

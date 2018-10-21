@@ -3,6 +3,7 @@ from flask import Flask, flash, redirect, render_template, request, session, abo
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 from pymongo import MongoClient
+from wtforms import Form, StringField, SelectField
 try:
     # for Python2
     from Tkinter import *
@@ -73,7 +74,6 @@ def managerlanding():
 def permissions():
     users = mongo.db.users
     userss = users.find_one({'Type' : 'User'})
-    flash(userss)
     if session.get('status', None) == "manager":
         abort(403)
     else:
@@ -108,6 +108,13 @@ def register():
             session['name'] = request.form['name']
             return redirect(url_for('landing'))
 	return render_template('landing.html')
+@app.route('/searchforuser/', methods=['POST', 'GET'])
+def searchforuser():
+        users = mongo.db.users
+        user = request.form['username']
+        current_usern = users.find_one({'username' : user})
+        #return redirect(url_for('permissions'))
+        return render_template('permissions.html', current_usern=current_usern)
 @app.route('/submit/', methods=['POST', 'GET'])
 def sendavailability():
     if request.method == 'POST':
