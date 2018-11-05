@@ -19,7 +19,7 @@ import os
 import json
 try:
     conn = MongoClient()
-    print("Connected to MongoDB")
+    #print("Connected to MongoDB")
 except:
     print("Could not connect to MongoDB")
 db = conn.database
@@ -59,7 +59,7 @@ def login():
         if bcrypt.hashpw(request.form['password'].encode('utf-8'), logged_user['password'].encode('utf-8')) == logged_user['password'].encode('utf-8'):
             session['username'] = request.form['username']
             usern = session['username']
-            name = session['name']
+            #name = session['name']
             session['user'] = "User"
             session['status'] = "user"  ###NEED TO GET THIS BIT DIFFERING BETWEEN MANAGER AND USER, PROBS HAVE THE SYSTEM CHECK ACCOUNT PERMS
             return redirect(url_for('userlanding'))
@@ -78,21 +78,42 @@ def permissions():
         abort(403)
     else:
         return render_template('permissions.html')
+@app.route('/updateavailability/', methods=['POST', 'GET'])
+def updateavailability():
+        users = mongo.db.users
+        user = request.form['username']
+        current_usern = users.find_one({'username' : user})
+        if users.find_one({'username' : usern})['Sunday-Early'] == "Available":
+            flash("called")
+            request.form.getlist('sun_early') == [u'sun_early']
+        return render_template('availability.html', current_usern=current_usern)
 @app.route("/workeravailability", methods=['POST','GET'])
 def workeravailability():
-    name = session['name']
+    if request.method == 'POST':
+        users = mongo.db.users
+        usern = session['username']
+        name = session['name']
+        existing_user = users.find_one({'username' : usern})
+        updateavailability()
+        if users.find_one({'username' : usern})['Sunday-Early'] == "Available":
+            flash("called")
+            request.form.getlist('sun_early') == [u'sun_early']
+    #test = mongo.db.users.find( { "Monday-Early": "Available" }  )
+
+    #if users({existing_user},{'Monday-Early':'Available'}) return render_template('availability.html', name=name)  fuck this line, this line is a dick
     if session.get('status', None) == "manager":
         abort(403)
     else:
-        return render_template('availability.html', name=name)
+        return render_template('availability.html')
 
 @app.route("/userlanding", methods=['POST','GET'])
 def userlanding():
-    name = session['name']
+    #name = session['name']
     if session.get('status', None) != "user":
         abort(403)
     else:
-        return render_template('userlanding.html', name=name)
+        return render_template('userlanding.html')
+        #return render_template('userlanding.html', name=name)
 @app.route('/register', methods=['POST', 'GET'])
 def register():
     if request.method == 'POST':
