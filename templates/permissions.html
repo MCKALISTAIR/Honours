@@ -9,6 +9,9 @@
 <div class="container-fluid">
       <p class="text-center">Account permission management</p>
       <p>Hello, {{ current_usern }}</p>
+      {% if utype != "" %}
+      <p>{{ usernam }} is a {{ utype }} account</p>
+      {% endif %}
 </div>
 <form action="/searchforuser/" method="POST">
 <div class="form-group has-feedback">
@@ -19,5 +22,12 @@
 <div class="pull-right">
 <input type="submit" value="Search" class="btn btn-primary btn-large btn-block" >
 </div>
+{% if utype != "" %}
+<form action="/upgradeuser/" method="POST">
+<div class="">
+<input type="submit" value="Upgrade to manager" class="btn btn-primary btn-large btn-block" >
+</div>
+</form>
+{% endif %}
 </form>
 {% endblock %}
