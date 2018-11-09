@@ -9,7 +9,7 @@
                         <div class="app-title">
                                 <h1>Worker Availability</h1>
                         </div>
-
+                        
                         <div class="row">
                           <div class="block">
                             <h4>NAME</h4>
@@ -18,52 +18,108 @@
                           <div class="block">
                           <h4>Monday</h4>
                           <label class="checkbox-inline">
+                            {% if mone == "true" %}
+                            <input type="checkbox" value="mon_early" name="mon_early" checked> Early
+                            {% else %}
                             <input type="checkbox" value="mon_early" name="mon_early"> Early
+                            {% endif %}
+                            {% if monl != "true" %}
+                            <input type="checkbox" value="mon_late" name="mon_late" checked> Late
+                            {% else %}
                             <input type="checkbox" value="mon_late" name="mon_late"> Late
+                            {% endif %}
                           </label>
                         </div>
 
                         <div class="block">
                           <h4>Tuesday</h4>
                           <label class="checkbox-inline">
+                            {% if tuee == "true" %}
+                            <input type="checkbox" value="tue_early" name="tue_early" checked> Early
+                            {% else %}
                             <input type="checkbox" value="tue_early" name="tue_early"> Early
+                            {% endif %}
+                            {% if tuel != "true" %}
+                            <input type="checkbox" value="tue_late" name="tue_late" checked> Late
+                            {% else %}
                             <input type="checkbox" value="tue_late" name="tue_late"> Late
+                            {% endif %}
                           </label>
                         </div>
 
                     <div class="block">
                           <h4>Wednesday</h4>
                           <label class="checkbox-inline">
+                            {% if wede == "true" %}
+                            <input type="checkbox" value="wed_early" name="wed_early" checked> Early
+                            {% else %}
                             <input type="checkbox" value="wed_early" name="wed_early"> Early
+                            {% endif %}
+                            {% if wedl != "true" %}
+                            <input type="checkbox" value="wed_late" name="wed_late" checked> Late
+                            {% else %}
                             <input type="checkbox" value="wed_late" name="wed_late"> Late
+                            {% endif %}
                           </label>
                       </div>
                       <div class="block">
                           <h4>Thursday</h4>
                           <label class="checkbox-inline">
+                            {% if thure == "true" %}
+                            <input type="checkbox" value="thur_early" name="thur_early" checked> Early
+                            {% else %}
                             <input type="checkbox" value="thur_early" name="thur_early"> Early
+                            {% endif %}
+                            {% if thurl != "true" %}
+                            <input type="checkbox" value="thur_late" name="thur_late" checked> Late
+                            {% else %}
                             <input type="checkbox" value="thur_late" name="thur_late"> Late
+                            {% endif %}
                           </label>
                         </div>
                         <div class="block">
                           <h4>Friday</h4>
                           <label class="checkbox-inline">
+                            {% if frie == "true" %}
+                            <input type="checkbox" value="fri_early" name="fri_early" checked> Early
+                            {% else %}
                             <input type="checkbox" value="fri_early" name="fri_early"> Early
+                            {% endif %}
+                            {% if fril != "true" %}
+                            <input type="checkbox" value="fri_late" name="fri_late" checked> Late
+                            {% else %}
                             <input type="checkbox" value="fri_late" name="fri_late"> Late
+                            {% endif %}
                           </label>
                           </div>
                           <div class="block">
                           <h4>Saturday</h4>
                           <label class="checkbox-inline">
+                            {% if sate == "true" %}
+                            <input type="checkbox" value="sat_early" name="sat_early" checked> Early
+                            {% else %}
                             <input type="checkbox" value="sat_early" name="sat_early"> Early
+                            {% endif %}
+                            {% if satl != "true" %}
+                            <input type="checkbox" value="sat_late" name="sat_late" checked> Late
+                            {% else %}
                             <input type="checkbox" value="sat_late" name="sat_late"> Late
+                            {% endif %}
                           </label>
                           </div>
                           <div class="block">
                           <h4>Sunday</h4>
                           <label class="checkbox-inline">
+                            {% if sune == "true" %}
+                            <input type="checkbox" value="sun_early" name="sun_early" checked> Early
+                            {% else %}
                             <input type="checkbox" value="sun_early" name="sun_early"> Early
+                            {% endif %}
+                            {% if sunl != "true" %}
+                            <input type="checkbox" value="sun_late" name="sun_late" checked> Late
+                            {% else %}
                             <input type="checkbox" value="sun_late" name="sun_late"> Late
+                            {% endif %}
                           </label>
                           </div>
 

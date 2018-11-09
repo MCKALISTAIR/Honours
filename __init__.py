@@ -4,6 +4,7 @@ from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 from wtforms import Form, StringField, SelectField
+from bottle import route, run, template
 try:
     # for Python2
     from Tkinter import *
@@ -59,7 +60,7 @@ def login():
         if bcrypt.hashpw(request.form['password'].encode('utf-8'), logged_user['password'].encode('utf-8')) == logged_user['password'].encode('utf-8'):
             session['username'] = request.form['username']
             usern = session['username']
-            #name = session['name']
+            name = users.find_one({'username' : usern})['name']
             session['user'] = "User"
             session['status'] = "user"  ###NEED TO GET THIS BIT DIFFERING BETWEEN MANAGER AND USER, PROBS HAVE THE SYSTEM CHECK ACCOUNT PERMS
             return redirect(url_for('userlanding'))
@@ -81,38 +82,99 @@ def permissions():
 @app.route('/updateavailability/', methods=['POST', 'GET'])
 def updateavailability():
         users = mongo.db.users
-        user = request.form['username']
-        current_usern = users.find_one({'username' : user})
+        usern = session['username']
+        name = users.find_one({'username' : usern})['name']
+        #user = request.form['username']
+        #current_usern = users.find_one({'username' : user})
         if users.find_one({'username' : usern})['Sunday-Early'] == "Available":
-            flash("called")
-            request.form.getlist('sun_early') == [u'sun_early']
-        return render_template('availability.html', current_usern=current_usern)
+            sune = "true"
+            flash(sune)
+        else:
+            sune = "false"
+            flash(sune)
+        if users.find_one({'username' : usern})['Sunday-Late'] == "Available":
+            sunl = "true"
+        else:
+            sunl = "false"
+        if users.find_one({'username' : usern})['Monday-Early'] == "Available":
+            mone = "true"
+        else:
+            mone = "false"
+        if users.find_one({'username' : usern})['Monday-Late'] == "Available":
+            monl = "true"
+        else:
+            monl = "false"
+        if users.find_one({'username' : usern})['Tuesday-Early'] == "Available":
+            tuee = "true"
+        else:
+            tuee = "false"
+        if users.find_one({'username' : usern})['Tuesday-Late'] == "Available":
+            tuel = "true"
+        else:
+            tuel = "false"
+        if users.find_one({'username' : usern})['Wednesday-Early'] == "Available":
+            wede = "true"
+        else:
+            wede = "false"
+        if users.find_one({'username' : usern})['Wednesday-Late'] == "Available":
+            wedl = "true"
+        else:
+            wedl = "false"
+        if users.find_one({'username' : usern})['Thursday-Early'] == "Available":
+            thure = "true"
+        else:
+            thure = "false"
+        if users.find_one({'username' : usern})['Thursday-Late'] == "Available":
+            thul = "true"
+        else:
+            thul = "false"
+        if users.find_one({'username' : usern})['Friday-Early'] == "Available":
+            frie = "true"
+        else:
+            frie = "false"
+        if users.find_one({'username' : usern})['Friday-Late'] == "Available":
+            fril = "true"
+        else:
+            fril = "false"
+        if users.find_one({'username' : usern})['Saturday-Early'] == "Available":
+            sate = "true"
+        else:
+            sate = "false"
+        if users.find_one({'username' : usern})['Saturday-Late'] == "Available":
+            satl = "true"
+        else:
+            satl = "false"
+
+            #request.form.getlist('sun_early')
+            #flash(request.form.getlist('sun_early'))
+        return render_template('availability.html', sune = sune, name = name)
+        #return render_template('availability.html', current_usern=current_usern)
 @app.route("/workeravailability", methods=['POST','GET'])
 def workeravailability():
-    if request.method == 'POST':
-        users = mongo.db.users
-        usern = session['username']
-        name = session['name']
-        existing_user = users.find_one({'username' : usern})
-        updateavailability()
-        if users.find_one({'username' : usern})['Sunday-Early'] == "Available":
-            flash("called")
-            request.form.getlist('sun_early') == [u'sun_early']
+    #if request.method == 'POST':
+    users = mongo.db.users
+    usern = session['username']
+    sune = "true"
+    name = users.find_one({'username' : usern})['name']
+    existing_user = users.find_one({'username' : usern})
+    updateavailability()
     #test = mongo.db.users.find( { "Monday-Early": "Available" }  )
 
     #if users({existing_user},{'Monday-Early':'Available'}) return render_template('availability.html', name=name)  fuck this line, this line is a dick
-    if session.get('status', None) == "manager":
-        abort(403)
-    else:
-        return render_template('availability.html')
+    #if session.get('status', None) == "manager":
+        #abort(403)
+    #else:
+    #return render_template('availability.html', sune = sune, name = name)
 
 @app.route("/userlanding", methods=['POST','GET'])
 def userlanding():
-    #name = session['name']
+    users = mongo.db.users
+    usern = session['username']
+    name = users.find_one({'username' : usern})['name']
     if session.get('status', None) != "user":
         abort(403)
     else:
-        return render_template('userlanding.html')
+        return render_template('userlanding.html', name = name)
         #return render_template('userlanding.html', name=name)
 @app.route('/register', methods=['POST', 'GET'])
 def register():
@@ -141,7 +203,7 @@ def sendavailability():
     if request.method == 'POST':
         users = mongo.db.users
         usern = session['username']
-        name = session['name']
+        #name = session['name']
         existing_user = users.find_one({'username' : usern})
 
         if request.form.getlist('mon_early') == [u'mon_early']:
