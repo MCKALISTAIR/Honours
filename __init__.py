@@ -255,16 +255,20 @@ def searchforuser():
         current_usern = users.find_one({'username' : user})
         utype = users.find_one({'username' : user})['Type']
         usernam = users.find_one({'username' : user})['name']
+        #return user
         #return redirect(url_for('permissions'))
-        return render_template('permissions.html', current_usern=current_usern, usernam = usernam, utype = utype)
+        return render_template('permissions.html', current_usern=current_usern, usernam = usernam, utype = utype, user=user)
 @app.route('/upgradeuser/', methods=['POST', 'GET'])
 def upgradeuser():
         users = mongo.db.users
-        user = request.form['username']
+        user = user
         current_usern = users.find_one({'username' : user})
-        #utype = users.find_one({'username' : user})['Type']
+        utype = users.find_one({'username' : user})['Type']
         usernam = users.find_one({'username' : user})['name']
-        users.update({'username':usernam},{"$set":{'Type':'Manager'}})
+        #users.update({'username':usernam},{"$set":{'Type':'Manager'}})
+        utype2 = users.find_one({'username' : user})['Type']
+        flash(utype2)
+        flash("Account upgrade succesfull")
         #return redirect(url_for('permissions'))
         return render_template('permissions.html', current_usern=current_usern, usernam = usernam, utype = utype)
 @app.route('/submit/', methods=['POST', 'GET'])
