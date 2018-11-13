@@ -252,6 +252,7 @@ def register():
 def searchforuser():
         users = mongo.db.users
         user = request.form['username']
+        session['user'] = user
         current_usern = users.find_one({'username' : user})
         utype = users.find_one({'username' : user})['Type']
         usernam = users.find_one({'username' : user})['name']
@@ -261,13 +262,15 @@ def searchforuser():
 @app.route('/upgradeuser/', methods=['POST', 'GET'])
 def upgradeuser():
         users = mongo.db.users
-        user = user
+        #user = user
+        user = session.get('user', None)
         current_usern = users.find_one({'username' : user})
         utype = users.find_one({'username' : user})['Type']
         usernam = users.find_one({'username' : user})['name']
-        #users.update({'username':usernam},{"$set":{'Type':'Manager'}})
+
         utype2 = users.find_one({'username' : user})['Type']
-        flash(utype2)
+        users.update({'username':usernam},{"$set":{'Type':'Manager'}})
+        flash(session.get('user', None))
         flash("Account upgrade succesfull")
         #return redirect(url_for('permissions'))
         return render_template('permissions.html', current_usern=current_usern, usernam = usernam, utype = utype)
