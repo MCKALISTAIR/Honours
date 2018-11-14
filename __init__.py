@@ -61,26 +61,36 @@ def login():
             session['username'] = request.form['username']
             usern = session['username']
             name = users.find_one({'username' : usern})['name']
-            session['user'] = "User"
-            session['status'] = "user"  ###NEED TO GET THIS BIT DIFFERING BETWEEN MANAGER AND USER, PROBS HAVE THE SYSTEM CHECK ACCOUNT PERMS
-            type = users.find_one({'username' : usern})['Type']
-            return redirect(url_for('userlanding'))
+            session['name']  = users.find_one({'username' : usern})['name']
+            #session['user'] = "User"
+            #session['status'] = "user"  ###NEED TO GET THIS BIT DIFFERING BETWEEN MANAGER AND USER, PROBS HAVE THE SYSTEM CHECK ACCOUNT PERMS
+            session['type'] = users.find_one({'username' : usern})['Type']
+            if session['type'] == 'Manager':
+                flash("m")
+                flash(session['type'])
+                return redirect(url_for('managerlanding'))
+            else:
+                flash("u")
+                flash(session['type'])
+                return redirect(url_for('userlanding'))
     return redirect(url_for('login'))
 @app.route("/managerlanding", methods=['POST','GET'])
 def managerlanding():
-    if session.get('status', None) == "manager":
+    this_user = session['name']
+    if session['type'] != 'Manager':
         abort(403)
     else:
-        return render_template('managerlanding.html')
+        return render_template('managerlanding.html', this_user=this_user)
 @app.route("/permissions", methods=['POST','GET'])
 def permissions():
     users = mongo.db.users
+    this_user = session['name']
     userss = users.find_one({'Type' : 'User'})
     utype = ""
-    if session.get('status', None) == "manager":
+    if session['type'] != 'Manager':
         abort(403)
     else:
-        return render_template('permissions.html', utype = utype)
+        return render_template('permissions.html', utype = utype, this_user=this_user)
 @app.route('/updateavailability/', methods=['POST', 'GET'])
 def updateavailability():
         users = mongo.db.users
@@ -217,18 +227,18 @@ def workeravailability():
         satl = "false"
     #test = mongo.db.users.find( { "Monday-Early": "Available" }  )
 
-    #if users({existing_user},{'Monday-Early':'Available'}) return render_template('availability.html', name=name)  fuck this line, this line is a dick
-    #if session.get('status', None) == "manager":
-        #abort(403)
-    #else:
-    return render_template('availability.html', mone = mone, monl = monl, tuee = tuee, tuel = tuel, wedl=wedl, wede=wede, thure = thure, thul = thul, frie = frie, fril = fril, sate = sate, satl = satl, name = name)
+    #if users({existing_user},{'Monday-Early':'Available'}) return render_template('availability.html', name=name)
+    if session['type'] == 'User' or session['type'] == 'Manager':
+        return render_template('availability.html', mone = mone, monl = monl, tuee = tuee, tuel = tuel, wedl=wedl, wede=wede, thure = thure, thul = thul, frie = frie, fril = fril, sate = sate, satl = satl, sune=sune, sunl=sunl, name = name)
+    else:
+        abort(403)
 
 @app.route("/userlanding", methods=['POST','GET'])
 def userlanding():
     users = mongo.db.users
     usern = session['username']
     name = users.find_one({'username' : usern})['name']
-    if users.find_one({'username' : usern})['Type'] != "User":
+    if session['type'] != 'User':
         abort(403)
     else:
         return render_template('userlanding.html', name = name)
@@ -253,12 +263,13 @@ def searchforuser():
         users = mongo.db.users
         user = request.form['username']
         session['user'] = user
+        this_user = session['name']
         current_usern = users.find_one({'username' : user})
         utype = users.find_one({'username' : user})['Type']
         usernam = users.find_one({'username' : user})['name']
         #return user
         #return redirect(url_for('permissions'))
-        return render_template('permissions.html', current_usern=current_usern, usernam = usernam, utype = utype, user=user)
+        return render_template('permissions.html', current_usern=current_usern, usernam = usernam, utype = utype, user=user, this_user=this_user)
 @app.route('/upgradeuser/', methods=['POST', 'GET'])
 def upgradeuser():
         users = mongo.db.users
