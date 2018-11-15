@@ -232,7 +232,73 @@ def workeravailability():
         return render_template('availability.html', mone = mone, monl = monl, tuee = tuee, tuel = tuel, wedl=wedl, wede=wede, thure = thure, thul = thul, frie = frie, fril = fril, sate = sate, satl = satl, sune=sune, sunl=sunl, name = name)
     else:
         abort(403)
-
+@app.route("/rota", methods=['POST','GET'])
+def generaterota():
+    users = mongo.db.users
+    usern = session['username']
+    name = users.find_one({'username' : usern})['name']
+    existing_user = users.find_one({'username' : usern})
+    #updateavailability()
+    if users.find_one({'username' : usern})['Sunday-Early'] == "Available":
+        sune = "true"
+    else:
+        sune = "false"
+    if users.find_one({'username' : usern})['Sunday-Late'] == "Available":
+        sunl = "true"
+    else:
+        sunl = "false"
+    if users.find_one({'username' : usern})['Monday-Early'] == "Available":
+        mone = "true"
+    else:
+        mone = "false"
+    if users.find_one({'username' : usern})['Monday-Late'] == "Available":
+        monl = "true"
+    else:
+        monl = "false"
+    if users.find_one({'username' : usern})['Tuesday-Early'] == "Available":
+        tuee = "true"
+    else:
+        tuee = "false"
+    if users.find_one({'username' : usern})['Tuesday-Late'] == "Available":
+        tuel = "true"
+    else:
+        tuel = "false"
+    if users.find_one({'username' : usern})['Wednesday-Early'] == "Available":
+        wede = "true"
+    else:
+        wede = "false"
+    if users.find_one({'username' : usern})['Wednesday-Late'] == "Available":
+        wedl = "true"
+    else:
+        wedl = "false"
+    if users.find_one({'username' : usern})['Thursday-Early'] == "Available":
+        thure = "true"
+    else:
+        thure = "false"
+    if users.find_one({'username' : usern})['Thursday-Late'] == "Available":
+        thul = "true"
+    else:
+        thul = "false"
+    if users.find_one({'username' : usern})['Friday-Early'] == "Available":
+        frie = "true"
+    else:
+        frie = "false"
+    if users.find_one({'username' : usern})['Friday-Late'] == "Available":
+        fril = "true"
+    else:
+        fril = "false"
+    if users.find_one({'username' : usern})['Saturday-Early'] == "Available":
+        sate = "true"
+    else:
+        sate = "false"
+    if users.find_one({'username' : usern})['Saturday-Late'] == "Available":
+        satl = "true"
+    else:
+        satl = "false"
+    if session['type'] != 'Manager':
+        abort(403)
+    else:
+        return render_template('rota.html', name = name)
 @app.route("/userlanding", methods=['POST','GET'])
 def userlanding():
     users = mongo.db.users
@@ -281,7 +347,6 @@ def upgradeuser():
 
         utype2 = users.find_one({'username' : user})['Type']
         users.update({'username':usernam},{"$set":{'Type':'Manager'}})
-        flash(session.get('user', None))
         flash("Account upgrade succesfull")
         #return redirect(url_for('permissions'))
         return render_template('permissions.html', current_usern=current_usern, usernam = usernam, utype = utype)
