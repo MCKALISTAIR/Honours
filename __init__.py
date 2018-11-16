@@ -12,6 +12,7 @@ except ImportError:
     # for Python3
     from tkinter import *
 import bcrypt
+import pymongo
 import random
 import string
 import pyperclip
@@ -235,66 +236,76 @@ def workeravailability():
 @app.route("/rota", methods=['POST','GET'])
 def generaterota():
     users = mongo.db.users
+    myclient = pymongo.MongoClient("mongodb://MCKALISTAIR:Uacpad923!@ds145412.mlab.com:45412/users")
+    mydb = myclient["users"]
+    mycol = mydb["users"]
     usern = session['username']
     name = users.find_one({'username' : usern})['name']
+    listofusers = []
+    list = users.find({'Type' : "User"})
+    for x in mycol.find():
+        print(x)
     existing_user = users.find_one({'username' : usern})
+    no_days = 7
+    shifts_per_day = 2
+    total_shifts = 14
     #updateavailability()
     if users.find_one({'username' : usern})['Sunday-Early'] == "Available":
-        sune = "true"
+        sune = 1
     else:
-        sune = "false"
+        sune = 0
     if users.find_one({'username' : usern})['Sunday-Late'] == "Available":
-        sunl = "true"
+        sunl = 1
     else:
-        sunl = "false"
+        sunl = 0
     if users.find_one({'username' : usern})['Monday-Early'] == "Available":
-        mone = "true"
+        mone = 1
     else:
-        mone = "false"
+        mone = 0
     if users.find_one({'username' : usern})['Monday-Late'] == "Available":
-        monl = "true"
+        monl = 1
     else:
-        monl = "false"
+        monl = 0
     if users.find_one({'username' : usern})['Tuesday-Early'] == "Available":
-        tuee = "true"
+        tuee = 1
     else:
-        tuee = "false"
+        tuee = 0
     if users.find_one({'username' : usern})['Tuesday-Late'] == "Available":
-        tuel = "true"
+        tuel = 1
     else:
-        tuel = "false"
+        tuel = 0
     if users.find_one({'username' : usern})['Wednesday-Early'] == "Available":
-        wede = "true"
+        wede = 1
     else:
-        wede = "false"
+        wede = 0
     if users.find_one({'username' : usern})['Wednesday-Late'] == "Available":
-        wedl = "true"
+        wedl = 1
     else:
-        wedl = "false"
+        wedl = 0
     if users.find_one({'username' : usern})['Thursday-Early'] == "Available":
-        thure = "true"
+        thure = 1
     else:
-        thure = "false"
+        thure = 0
     if users.find_one({'username' : usern})['Thursday-Late'] == "Available":
-        thul = "true"
+        thul = 1
     else:
-        thul = "false"
+        thul = 0
     if users.find_one({'username' : usern})['Friday-Early'] == "Available":
-        frie = "true"
+        frie = 1
     else:
-        frie = "false"
+        frie = 0
     if users.find_one({'username' : usern})['Friday-Late'] == "Available":
-        fril = "true"
+        fril = 1
     else:
-        fril = "false"
+        fril = 0
     if users.find_one({'username' : usern})['Saturday-Early'] == "Available":
-        sate = "true"
+        sate = 1
     else:
-        sate = "false"
+        sate = 0
     if users.find_one({'username' : usern})['Saturday-Late'] == "Available":
-        satl = "true"
+        satl = 1
     else:
-        satl = "false"
+        satl = 0
     if session['type'] != 'Manager':
         abort(403)
     else:
