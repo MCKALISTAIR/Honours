@@ -239,13 +239,13 @@ def generaterota():
     myclient = pymongo.MongoClient("mongodb://MCKALISTAIR:Uacpad923!@ds145412.mlab.com:45412/users")
     record1 = db.users
 
-    cursor = record1.find({},{"Type":"User", "_id":False})
-    #cursor = record1.distinct("coreInfo.username")
+    cursor = record1.find()
+    #cursor = record1.distinct("coreInfo.username"){},{"Type":"User", "_id":False}
     flash("above cursor")
     flash(cursor)
     for doc in cursor:
-           flash("lllll")
-           flash(doc)
+        flash(doc)
+        flash(doc['username'])
     mydb = myclient["users"]
     mycol = mydb["users"]
     usern = session['username']
