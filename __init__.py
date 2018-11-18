@@ -237,14 +237,31 @@ def workeravailability():
 def generaterota():
     users = mongo.db.users
     myclient = pymongo.MongoClient("mongodb://MCKALISTAIR:Uacpad923!@ds145412.mlab.com:45412/users")
+    record1 = db.users
+
+    cursor = record1.find({},{"Type":"User", "_id":False})
+    #cursor = record1.distinct("coreInfo.username")
+    flash("above cursor")
+    flash(cursor)
+    for doc in cursor:
+           flash("lllll")
+           flash(doc)
     mydb = myclient["users"]
     mycol = mydb["users"]
     usern = session['username']
     name = users.find_one({'username' : usern})['name']
     listofusers = []
-    list = users.find({'Type' : "User"})
-    for x in mycol.find():
-        print(x)
+    for x in mycol.find({'Type' : "User"}):
+        listofusers.append(x)
+    #flash(listofusers[1])
+    #test = listofusers[0]
+    #flash(test.keys())
+        #for y in mycol.find({'Type' : "User"}):
+            #while i < len(listofusers):
+                #test = listofusers[i]
+                #test2 = test.find({'username' : usern})
+                #flash(test2)
+                #i += 1
     existing_user = users.find_one({'username' : usern})
     no_days = 7
     shifts_per_day = 2
