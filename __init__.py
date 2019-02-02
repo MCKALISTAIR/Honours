@@ -402,9 +402,17 @@ def generaterota():
             shiftlist.append(holdingpen6)
             flash(shiftlist)
             shiftlist.append(holdingpen7)
+            holdingpen1 = []
+            holdingpen2 = []
+            holdingpen3 = []
+            holdingpen4 = []
+            holdingpen5 = []
+            holdingpen6 = []
+            holdingpen7 = []
             flash(shiftlist)
             flash("master1")
             masterlist.append(shiftlist)
+            shiftlist = []
             flash(masterlist)
         #del masterlist[1:]
         flash("master")
