@@ -298,16 +298,11 @@ def generaterota():
 
     def mains():
         # Data.
-        flash("mains")
         noofuser = 0
         usercounter = 0
         listofemps = []
         holdingpen = []
         shiftlist = []
-
-        flash("empty")
-        flash(shiftlist)
-        flash("empty")
         masterlist = []
         finallist = []
         for x in mycol.find({'Type' : "User"}):
@@ -373,34 +368,18 @@ def generaterota():
             else:
                 satl = 0
             holdingpen1 = [names,sune,sunl]
-            flash(holdingpen1)
             holdingpen2 = [names,mone,monl]
-            flash(holdingpen2)
             holdingpen3 = [names,tuee,tuel]
-            flash(holdingpen3)
             holdingpen4 = [names,wede,wedl]
-            flash(holdingpen4)
             holdingpen5 = [names,thure,thul]
-            flash(holdingpen5)
             holdingpen6 = [names,frie,fril]
-            flash(holdingpen6)
             holdingpen7 = [names,sate,satl]
-            flash(holdingpen7)
-            flash("shift")
-            flash(shiftlist)
-            flash("shift")
             shiftlist.append(holdingpen1)
-            flash(shiftlist)
             shiftlist.append(holdingpen2)
-            flash(shiftlist)
             shiftlist.append(holdingpen3)
-            flash(shiftlist)
             shiftlist.append(holdingpen4)
-            flash(shiftlist)
             shiftlist.append(holdingpen5)
-            flash(shiftlist)
             shiftlist.append(holdingpen6)
-            flash(shiftlist)
             shiftlist.append(holdingpen7)
             holdingpen1 = []
             holdingpen2 = []
@@ -409,14 +388,8 @@ def generaterota():
             holdingpen5 = []
             holdingpen6 = []
             holdingpen7 = []
-            flash(shiftlist)
-            flash("master1")
             masterlist.append(shiftlist)
             shiftlist = []
-            flash(masterlist)
-        #del masterlist[1:]
-        flash("master")
-        flash(masterlist)
         #flash(masterlist[0][1])
         number_of_employees = noofuser
         number_of_shifts = 2
@@ -424,16 +397,7 @@ def generaterota():
         all_employees = range(number_of_employees)
         all_shifts = range(number_of_shifts)
         all_days = range(number_of_days)
-        shift_requests = [[[0, 0, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1],
-                       [0, 1, 0], [0, 0, 1]],
-                      [[0, 0, 0], [0, 0, 0], [0, 1, 0], [0, 1, 0], [1, 0, 0],
-                       [0, 0, 0], [0, 0, 1]],
-                      [[0, 1, 0], [0, 1, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0],
-                       [0, 1, 0], [0, 0, 0]],
-                      [[0, 0, 1], [0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 0],
-                       [1, 0, 0], [0, 0, 0]],
-                      [[0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 0, 0], [1, 0, 0],
-                       [0, 1, 0], [0, 0, 0]]]
+        availability_list = masterlist
         # Creates the model.
         model = cp_model.CpModel()
 
@@ -468,6 +432,10 @@ def generaterota():
                 shifts[(e, d, s)] for d in all_days for s in all_shifts)
             model.Add(min_shifts_per_employee <= num_shifts_worked)
             model.Add(num_shifts_worked <= max_shifts_per_employee)
+
+          model.Maximize(
+        sum(availability_list[n][d][s] * shifts[(n, d, s)] for n in all_nurses
+            for d in all_days for s in all_shifts))
 
         # Creates the solver and solve.
         solver = cp_model.CpSolver()
