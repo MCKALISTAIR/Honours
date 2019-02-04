@@ -255,11 +255,11 @@ def generaterota():
     usern = session['username']
     name = users.find_one({'username' : usern})['name']
     flash("above")
+    '''
     class ShiftPartialSolutionPrinter(cp_model.CpSolverSolutionCallback):
         """Print intermediate solutions."""
-        flash("init")
         def __init__(self, shifts, number_of_employees, number_of_days, number_of_shifts, sols):
-            flash("initin")
+
             cp_model.CpSolverSolutionCallback.__init__(self)
             self._shifts = shifts
             self._number_of_employees = number_of_employees
@@ -290,7 +290,7 @@ def generaterota():
             flash("return self._solution_count")
             return self._solution_count
 
-
+    '''
     '''
     def fitness():
 
@@ -367,13 +367,13 @@ def generaterota():
                 satl = 1
             else:
                 satl = 0
-            holdingpen1 = [names,sune,sunl]
-            holdingpen2 = [names,mone,monl]
-            holdingpen3 = [names,tuee,tuel]
-            holdingpen4 = [names,wede,wedl]
-            holdingpen5 = [names,thure,thul]
-            holdingpen6 = [names,frie,fril]
-            holdingpen7 = [names,sate,satl]
+            holdingpen1 = [users.find_one({'username' : names})['Employee Number'],sune,sunl]
+            holdingpen2 = [users.find_one({'username' : names})['Employee Number'],mone,monl]
+            holdingpen3 = [users.find_one({'username' : names})['Employee Number'],tuee,tuel]
+            holdingpen4 = [users.find_one({'username' : names})['Employee Number'],wede,wedl]
+            holdingpen5 = [users.find_one({'username' : names})['Employee Number'],thure,thul]
+            holdingpen6 = [users.find_one({'username' : names})['Employee Number'],frie,fril]
+            holdingpen7 = [users.find_one({'username' : names})['Employee Number'],sate,satl]
             shiftlist.append(holdingpen1)
             shiftlist.append(holdingpen2)
             shiftlist.append(holdingpen3)
@@ -393,10 +393,13 @@ def generaterota():
         #flash(masterlist[0][1])
         number_of_employees = noofuser
         number_of_shifts = 2
-        number_of_days = 3
+        number_of_days = 7
         all_employees = range(number_of_employees)
         all_shifts = range(number_of_shifts)
         all_days = range(number_of_days)
+        flash(all_employees)
+        flash(all_shifts)
+        flash(all_days)
         availability_list = masterlist
         # Creates the model.
         model = cp_model.CpModel()
@@ -433,27 +436,39 @@ def generaterota():
             model.Add(min_shifts_per_employee <= num_shifts_worked)
             model.Add(num_shifts_worked <= max_shifts_per_employee)
 
-          model.Maximize(
-        sum(availability_list[n][d][s] * shifts[(n, d, s)] for n in all_nurses
-            for d in all_days for s in all_shifts))
+        model.Maximize(
+            sum(availability_list[e][d][s] * shifts[(e, d, s)] for n in all_employees
+                for d in all_days for s in all_shifts))
 
-        # Creates the solver and solve.
         solver = cp_model.CpSolver()
-        # Display the first five solutions.
-        a_few_solutions = range(5)
-        solution_printer = ShiftPartialSolutionPrinter(
-            shifts, number_of_employees, number_of_days, number_of_shifts, a_few_solutions)
-        solver.SearchForAllSolutions(model, solution_printer)
-
-        # Statistics.
+        solver.Solve(model)
+        for d in all_days:
+            print('Day', d)
+            for e in all_employees:
+                for s in all_shifts:
+                    if solver.Value(shifts[(e, d, s)]) == 1:
+                        if availability_list[e][d][s] == 1:
+                            print('Nurse', e, 'works shift', s, '(requested).')
+                        else:
+                            print('Nurse', e, 'works shift', s, '(not requested).')
+            print()
         print()
         print('Statistics')
-        print('  - conflicts       : %i' % solver.NumConflicts())
-        print('  - branches        : %i' % solver.NumBranches())
-        print('  - wall time       : %f ms' % solver.WallTime())
-        print('  - solutions found : %i' % solution_printer.solution_count())
-    mains()
+        print('  - Number of shift requests met = %i' % solver.ObjectiveValue(),
+              '(out of', number_of_employees * min_shifts_per_employee, ')')
+        print('  - wall time       : %f s' % solver.WallTime())
 
+
+    '''    # Statistics.
+    print()
+    print('Statistics')
+    print('  - conflicts       : %i' % solver.NumConflicts())
+    print('  - branches        : %i' % solver.NumBranches())
+    print('  - wall time       : %f ms' % solver.WallTime())
+    print('  - solutions found : %i' % solution_printer.solution_count())
+    mains()
+    '''
+    mains()
     if session['type'] == 'Manager':
         abort(403)
     else:
@@ -475,12 +490,15 @@ def register():
     if request.method == 'POST':
         users = mongo.db.users
         existing_user = users.find_one({'name' : request.form['username']})
+        number_counter = users.find_one({'username' : "Counter"})['Employee Number Main']
+        number_counter = number_counter + 1
+        users.update({'username':"Counter"},{"$set":{'Employee Number Main':number_counter}})
         if request.form['password'] != request.form['confirm_password']:
             flash("Passwords did not match. Please enter passwords again.")
             return redirect(url_for('register_page'))
         if existing_user is None:
             hashdpw = bcrypt.hashpw(request.form['password'].encode('utf-8'), bcrypt.gensalt())
-            users.insert({'username' : request.form['username'], 'name' : request.form['name'], 'password' : hashdpw,  'Type' : 'User', 'Monday-Early' : 'Not set', 'Monday-Late' : 'Not set', 'Tuesday-Early' : 'Not set', 'Tuesday-Late' : 'Not set', 'Wednesday-Early' : 'Not set', 'Wednesday-Late' : 'Not set', 'Thursday-Early' : 'Not set', 'Thursday-Late' : 'Not set', 'Friday-Early' : 'Not set', 'Friday-Late' : 'Not set', 'Saturday-Early' : 'Not set', 'Saturday-Late' : 'Not set', 'Sunday-Early' : 'Not set', 'Sunday-Late' : 'Not set' })
+            users.insert({'username' : request.form['username'], "Employee Number": number_counter, 'name' : request.form['name'], 'password' : hashdpw,  'Type' : 'User', 'Monday-Early' : 'Not set', 'Monday-Late' : 'Not set', 'Tuesday-Early' : 'Not set', 'Tuesday-Late' : 'Not set', 'Wednesday-Early' : 'Not set', 'Wednesday-Late' : 'Not set', 'Thursday-Early' : 'Not set', 'Thursday-Late' : 'Not set', 'Friday-Early' : 'Not set', 'Friday-Late' : 'Not set', 'Saturday-Early' : 'Not set', 'Saturday-Late' : 'Not set', 'Sunday-Early' : 'Not set', 'Sunday-Late' : 'Not set' })
             session['username'] = request.form['username']
             session['name'] = request.form['name']
             return redirect(url_for('landing'))
