@@ -255,7 +255,7 @@ def generaterota():
     usern = session['username']
     name = users.find_one({'username' : usern})['name']
     flash("above")
-    '''
+
     class ShiftPartialSolutionPrinter(cp_model.CpSolverSolutionCallback):
         """Print intermediate solutions."""
         def __init__(self, shifts, number_of_employees, number_of_days, number_of_shifts, sols):
@@ -290,7 +290,7 @@ def generaterota():
             flash("return self._solution_count")
             return self._solution_count
 
-    '''
+
     '''
     def fitness():
 
@@ -435,9 +435,14 @@ def generaterota():
                 shifts[(e, d, s)] for d in all_days for s in all_shifts)
             model.Add(min_shifts_per_employee <= num_shifts_worked)
             model.Add(num_shifts_worked <= max_shifts_per_employee)
+        solver = cp_model.CpSolver()
+        a_few_solutions = range(5)
+        solution_printer = ShiftPartialSolutionPrinter(
+        shifts, number_of_employees, number_of_days, number_of_shifts, a_few_solutions)
+        solver.SearchForAllSolutions(model, solution_printer)
 
         model.Maximize(
-            sum(availability_list[e][d][s] * shifts[(e, d, s)] for n in all_employees
+            sum(availability_list[e][d][s] * shifts[(e, d, s)] for e in all_employees
                 for d in all_days for s in all_shifts))
 
         solver = cp_model.CpSolver()
@@ -448,32 +453,40 @@ def generaterota():
                 for s in all_shifts:
                     if solver.Value(shifts[(e, d, s)]) == 1:
                         if availability_list[e][d][s] == 1:
-                            print('Nurse', e, 'works shift', s, '(requested).')
+                            print('Employee', e, 'works shift', s, '(Available).')
                         else:
-                            print('Nurse', e, 'works shift', s, '(not requested).')
+                            print('Employee', e, 'works shift', s, '(Not Available).')
             print()
         print()
+
+
+
         print('Statistics')
         print('  - Number of shift requests met = %i' % solver.ObjectiveValue(),
               '(out of', number_of_employees * min_shifts_per_employee, ')')
         print('  - wall time       : %f s' % solver.WallTime())
+        outof = solver.ObjectiveValue()
 
 
-    '''    # Statistics.
-    print()
-    print('Statistics')
-    print('  - conflicts       : %i' % solver.NumConflicts())
-    print('  - branches        : %i' % solver.NumBranches())
-    print('  - wall time       : %f ms' % solver.WallTime())
-    print('  - solutions found : %i' % solution_printer.solution_count())
-    mains()
-    '''
+
+        # Statistics.
+        print()
+        print('Statistics')
+        print('  - conflicts       : %i' % solver.NumConflicts())
+        print('  - branches        : %i' % solver.NumBranches())
+        print('  - wall time       : %f ms' % solver.WallTime())
+        print('  - solutions found : %i' % solution_printer.solution_count())
+        #mains()
+        return outof
     mains()
     if session['type'] == 'Manager':
         abort(403)
     else:
         return render_template('rota.html', name = name)
+def fitness(outof):
+    fitness = outof
 
+    return fitness
 
 
 @app.route("/userlanding", methods=['POST','GET'])
