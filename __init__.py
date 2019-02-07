@@ -271,7 +271,22 @@ def generaterota():
             if self._solution_count in self._solutions:
                 print('Solution %i' % self._solution_count)
                 for d in range(self._number_of_days):
-                    print('Day %i' % d)
+                    #print('Day %i' % d)
+                    if(d == 0):
+                        print('Monday')
+                    if(d == 1):
+                        print('Tuesday')
+                    if(d == 2):
+                        print('Wednesday')
+                    if(d == 3):
+                        print('Thursday')
+                    if(d == 4):
+                        print('Friday')
+                    if(d == 5):
+                        print('Saturday')
+                    if(d == 6):
+                        print('Sunday')
+
                     for e in range(self._number_of_employees):
                         is_working = False
                         for s in range(self._number_of_shifts):
@@ -388,6 +403,7 @@ def generaterota():
         all_shifts = range(number_of_shifts)
         all_days = range(number_of_days)
         availability_list = masterlist
+        flash(availability_list)
         # Creates the model.
         model = cp_model.CpModel()
 
@@ -431,13 +447,28 @@ def generaterota():
         model.Maximize(
             sum(availability_list[e][d][s] * shifts[(e, d, s)] for e in all_employees
                 for d in all_days for s in all_shifts))
+        flash(model)
 
         solver = cp_model.CpSolver()
         solver.Solve(model)
         for d in all_days:
-            print('Day', d)
+            if(d == 0):
+                print('Monday')
+            if(d == 1):
+                print('Tuesday')
+            if(d == 2):
+                print('Wednesday')
+            if(d == 3):
+                print('Thursday')
+            if(d == 4):
+                print('Friday')
+            if(d == 5):
+                print('Saturday')
+            if(d == 6):
+                print('Sunday')
             for e in all_employees:
                 for s in all_shifts:
+                    flash(solver.Value(shifts[(e, d, s)]))
                     if solver.Value(shifts[(e, d, s)]) == 1:
                         if availability_list[e][d][s] == 1:
                             print('Employee', e, 'works shift', s, '(Available).')
@@ -445,30 +476,21 @@ def generaterota():
                             print('Employee', e, 'works shift', s, '(Not Available).')
             print()
         print()
-
-
-
-        print('Statistics')
-        print('  - Number of shift requests met = %i' % solver.ObjectiveValue(),
-              '(out of', number_of_employees * min_shifts_per_employee, ')')
-        print('  - wall time       : %f s' % solver.WallTime())
-        shiftsmet = solver.ObjectiveValue()
-        outof = number_of_employees * min_shifts_per_employee
-        shiftfitness = shiftsmet/outof
-
-
-
-        # Statistics.
+        flash(shifts)
+        flash(solver.ObjectiveValue())
+             # '(out of', number_of_employees * min_shifts_per_employee, ')')
         print()
-        print('Statistics')
+        print('Stats')
+        print('  - Number of shift requests met = %i' % solver.ObjectiveValue(), '(out of', number_of_employees * 7, ')')
         print('  - conflicts       : %i' % solver.NumConflicts())
         print('  - branches        : %i' % solver.NumBranches())
         print('  - wall time       : %f ms' % solver.WallTime())
         print('  - solutions found : %i' % solution_printer.solution_count())
         conflicts = solver.NumConflicts()
-        #return outof
-        #return conflicts
-        fitness(outof, conflicts)
+        shiftsmet = solver.ObjectiveValue()
+        outof = number_of_employees * min_shifts_per_employee
+        shiftfitness = shiftsmet/outof
+        fitness(outof, conflicts, shiftsmet)
 
     mains()
 
@@ -477,11 +499,11 @@ def generaterota():
     else:
         return render_template('rota.html', name = name)
 
-def fitness(outof, conflicts):
+def fitness(outof, conflicts, shiftsmet):
     fitness = 0
     flash(outof)
     flash(conflicts)
-    fitness = fitness + outof + conflicts
+    fitness = fitness - conflicts
     print("Fitness: ")
     print(fitness)
     return fitness
