@@ -466,14 +466,18 @@ def generaterota():
                 print('Saturday')
             if(d == 6):
                 print('Sunday')
+            no = 1
             for e in all_employees:
+                tempname = mycol.find_one({'Employee Number' : no})['username']
+                no = no + 1
                 for s in all_shifts:
                     flash(solver.Value(shifts[(e, d, s)]))
                     if solver.Value(shifts[(e, d, s)]) == 1:
                         if availability_list[e][d][s] == 1:
-                            print('Employee', e, 'works shift', s, '(Available).')
+                            print('Employee', tempname, 'works shift', s, '(Available).')
                         else:
-                            print('Employee', e, 'works shift', s, '(Not Available).')
+                            print('Employee', tempname, 'works shift', s, '(Not Available).')
+
             print()
         print()
         flash(shifts)
