@@ -253,7 +253,8 @@ def generaterota():
     mycol = mydb["users"]
     usern = session['username']
     name = users.find_one({'username' : usern})['name']
-
+    conflicts = 0
+    solutionsfound = 0
     class ShiftPartialSolutionPrinter(cp_model.CpSolverSolutionCallback):
         """Print intermediate solutions."""
         def __init__(self, shifts, number_of_employees, number_of_days, number_of_shifts, sols):
@@ -301,8 +302,9 @@ def generaterota():
             return self._solution_count
 
 
-    def mains():
+    def mains(conflicts, solutionsfound):
         # Data.
+
         noofuser = 0
         usercounter = 0
         listofemps = []
@@ -447,8 +449,6 @@ def generaterota():
         model.Maximize(
             sum(availability_list[e][d][s] * shifts[(e, d, s)] for e in all_employees
                 for d in all_days for s in all_shifts))
-        flash(model)
-
         solver = cp_model.CpSolver()
         solver.Solve(model)
         for d in all_days:
@@ -477,11 +477,8 @@ def generaterota():
                             print('Employee', tempname, 'works shift', s, '(Available).')
                         else:
                             print('Employee', tempname, 'works shift', s, '(Not Available).')
-
             print()
         print()
-        flash(shifts)
-        flash(solver.ObjectiveValue())
              # '(out of', number_of_employees * min_shifts_per_employee, ')')
         print()
         print('Stats')
@@ -492,16 +489,18 @@ def generaterota():
         print('  - solutions found : %i' % solution_printer.solution_count())
         conflicts = solver.NumConflicts()
         shiftsmet = solver.ObjectiveValue()
+        solutionsfound = solution_printer.solution_count()
         outof = number_of_employees * min_shifts_per_employee
         shiftfitness = shiftsmet/outof
         fitness(outof, conflicts, shiftsmet)
-
-    mains()
-
+        return conflicts, solutionsfound
+    mains(conflicts, solutionsfound)
+    flash(conflicts)
+    #return name
     if session['type'] == 'Manager':
         abort(403)
     else:
-        return render_template('rota.html', name = name)
+        return render_template('rota.html', name = name, conflicts = mains(conflicts, solutionsfound))
 
 def fitness(outof, conflicts, shiftsmet):
     fitness = 0
