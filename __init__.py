@@ -466,11 +466,20 @@ def generaterota():
             print('Saturday')
         if(d == 6):
             print('Sunday')
-        no = 1
-        i = 0
-        for e in all_employees:
-            tempname = mycol.find_one({'Employee Number' : no})['username']
-            no = no + 1
+        nolist = []
+        z = 1
+        mycol2 = mydb["users"]
+        for record in mycol2.find({'Type' : "Manager"}):
+            mycol2.delete_one(record)
+        for record in mycol2.find({'Type' : "User"}):
+            #if mycol2.find({'Type' : "User"})["Employee Number"] >0:
+                #empno = mycol2.find({'Type' : "User"})["Employee Number"]
+                nolist.append(record["Employee Number"])
+        #while z <= 4:
+        for  i in range(len(nolist)):
+            tempname = mycol2.find_one({'Employee Number' : nolist[i]})['username']
+            i += 1
+            flash(nolist)
             for s in all_shifts:
                 if solver.Value(shifts[(e, d, s)]) == 1:
                     if availability_list[e][d][s] == 1:
