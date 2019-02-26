@@ -254,6 +254,8 @@ def generaterota():
     usern = session['username']
     name = users.find_one({'username' : usern})['name']
     conflicts = 0
+    bestfitness = 0
+    availability_fitness = 0
     solutionsfound = 0
     class ShiftPartialSolutionPrinter(cp_model.CpSolverSolutionCallback):
         """Print intermediate solutions."""
@@ -266,237 +268,12 @@ def generaterota():
             self._number_of_shifts = number_of_shifts
             self._solutions = set(sols)
             self._solution_count = 0
-
-            def on_solution_callback(self):
-                self._solution_count += 1
-                if self._solution_count in self._solutions:
-                    print('Solution %i' % self._solution_count)
-                    for d in range(self._number_of_days):
-                        #print('Day %i' % d)
-                        if(d == 0):
-                            print('Monday')
-                        if(d == 1):
-                            print('Tuesday')
-                        if(d == 2):
-                            print('Wednesday')
-                        if(d == 3):
-                            print('Thursday')
-                        if(d == 4):
-                            print('Friday')
-                        if(d == 5):
-                            print('Saturday')
-                        if(d == 6):
-                            print('Sunday')
-
-                        noofuser = 0
-                        usercounter = 0
-                        listofemps = []
-                        holdingpen = []
-                        shiftlist = []
-                        masterlist = []
-                        finallist = []
-                        for x in mycol.find({'Type' : "User"}):
-                            noofuser = noofuser + 1
-                        for record in mycol.find({'Type' : "User"}):
-                            listofemps.append(record)
-                            names = record['username']
-                            #finder = users.find_one({'username' : name})
-                            if users.find_one({'username' : names})['Sunday-Early'] == "Available":
-                                sune = 1
-                            else:
-                                sune = 0
-                            if users.find_one({'username' : names})['Sunday-Late'] == "Available":
-                                sunl = 1
-                            else:
-                                sunl = 0
-                            if users.find_one({'username' : names})['Monday-Early'] == "Available":
-                                mone = 1
-                            else:
-                                mone = 0
-                            if users.find_one({'username' : names})['Monday-Late'] == "Available":
-                                monl = 1
-                            else:
-                                monl = 0
-                            if users.find_one({'username' : names})['Tuesday-Early'] == "Available":
-                                tuee = 1
-                            else:
-                                tuee = 0
-                            if users.find_one({'username' : names})['Tuesday-Late'] == "Available":
-                                tuel = 1
-                            else:
-                                tuel = 0
-                            if users.find_one({'username' : names})['Wednesday-Early'] == "Available":
-                                wede = 1
-                            else:
-                                wede = 0
-                            if users.find_one({'username' : names})['Wednesday-Late'] == "Available":
-                                wedl = 1
-                            else:
-                                wedl = 0
-                            if users.find_one({'username' : names})['Thursday-Early'] == "Available":
-                                thure = 1
-                            else:
-                                thure = 0
-                            if users.find_one({'username' : names})['Thursday-Late'] == "Available":
-                                thul = 1
-                            else:
-                                thul = 0
-                            if users.find_one({'username' : names})['Friday-Early'] == "Available":
-                                frie = 1
-                            else:
-                                frie = 0
-                            if users.find_one({'username' : names})['Friday-Late'] == "Available":
-                                fril = 1
-                            else:
-                                fril = 0
-                            if users.find_one({'username' : names})['Saturday-Early'] == "Available":
-                                sate = 1
-                            else:
-                                sate = 0
-                            if users.find_one({'username' : names})['Saturday-Late'] == "Available":
-                                satl = 1
-                            else:
-                                satl = 0
-                            holdingpen1 = [users.find_one({'username' : names})['Employee Number'],sune,sunl]
-                            holdingpen2 = [users.find_one({'username' : names})['Employee Number'],mone,monl]
-                            holdingpen3 = [users.find_one({'username' : names})['Employee Number'],tuee,tuel]
-                            holdingpen4 = [users.find_one({'username' : names})['Employee Number'],wede,wedl]
-                            holdingpen5 = [users.find_one({'username' : names})['Employee Number'],thure,thul]
-                            holdingpen6 = [users.find_one({'username' : names})['Employee Number'],frie,fril]
-                            holdingpen7 = [users.find_one({'username' : names})['Employee Number'],sate,satl]
-                            shiftlist.append(holdingpen1)
-                            shiftlist.append(holdingpen2)
-                            shiftlist.append(holdingpen3)
-                            shiftlist.append(holdingpen4)
-                            shiftlist.append(holdingpen5)
-                            shiftlist.append(holdingpen6)
-                            shiftlist.append(holdingpen7)
-                            holdingpen1 = []
-                            holdingpen2 = []
-                            holdingpen3 = []
-                            holdingpen4 = []
-                            holdingpen5 = []
-                            holdingpen6 = []
-                            holdingpen7 = []
-                            masterlist.append(shiftlist)
-                            shiftlist = []
-                        #flash(masterlist[0][1])
-                        nolist = []
-                        mycol2 = mydb["users"]
-                        for record in mycol2.find({'Type' : "Manager"}):
-                    	       mycol2.delete_one(record)
-                        for record in mycol2.find({'Type' : "User"}):
-                    	       nolist.append(record["Employee Number"])
-                        flash(nolist)
-                        flash("no")
-                        number_of_employees = len(nolist)
-                        number_of_shifts = 3
-                        number_of_days = 7
-                        all_employees = range(number_of_employees)
-                        all_shifts = range(number_of_shifts)
-                        all_days = range(number_of_days)
-                        availability_list = masterlist
-                        flash(availability_list)
-                        # Creates the model.
-                        model = cp_model.CpModel()
-
-                        # Creates shift variables.
-                        # shifts[(n, d, s)]: employee 'n' works shift 's' on day 'd'.
-                        shifts = {}
-                        for e in all_employees:
-                            for d in all_days:
-                                for s in all_shifts:
-                                    shifts[(e, d, s)] = model.NewBoolVar('shift_e%id%is%i' % (e, d,
-                                                                                              s))
-
-                        # Each shift is assigned to exactly one employee in the schedule period.
-                        for d in all_days:
-                            for s in all_shifts:
-                                model.Add(sum(shifts[(e, d, s)] for e in all_employees) == 1)
-
-                        # Each employee works at most one shift per day.
-                        for e in all_employees:
-                            for d in all_days:
-                                model.Add(sum(shifts[(e, d, s)] for s in all_shifts) <= 1)
-
-                        # min_shifts_per_employee is the largest integer such that every employee
-                        # can be assigned at least that many shifts. If the number of employees doesn't
-                        # divide the total number of shifts over the schedule period,
-                        # some employees have to work one more shift, for a total of
-                        # min_shifts_per_employee + 1.
-                        min_shifts_per_employee = (number_of_shifts * number_of_days) // number_of_employees
-                        max_shifts_per_employee = min_shifts_per_employee + 1
-                        for n in all_employees:
-                            num_shifts_worked = sum(
-                                shifts[(e, d, s)] for d in all_days for s in all_shifts)
-                            model.Add(min_shifts_per_employee <= num_shifts_worked)
-                            model.Add(num_shifts_worked <= max_shifts_per_employee)
-                        solver = cp_model.CpSolver()
-                        a_few_solutions = range(5)
-                        solution_printer = ShiftPartialSolutionPrinter(
-                        shifts, number_of_employees, number_of_days, number_of_shifts, a_few_solutions)
-                        solver.SearchForAllSolutions(model, solution_printer)
-
-                        model.Maximize(
-                            sum(availability_list[e][d][s] * shifts[(e, d, s)] for e in all_employees
-                                for d in all_days for s in all_shifts))
-                        solver = cp_model.CpSolver()
-                        solver.Solve(model)
-                        for d in all_days:
-                            if(d == 0):
-                                print('Monday')
-                            if(d == 1):
-                                print('Tuesday')
-                            if(d == 2):
-                                print('Wednesday')
-                            if(d == 3):
-                                print('Thursday')
-                            if(d == 4):
-                                print('Friday')
-                            if(d == 5):
-                                print('Saturday')
-                            if(d == 6):
-                                print('Sunday')
-                            nolist = []
-                            z = 1
-                            mycol2 = mydb["users"]
-                            for record in mycol2.find({'Type' : "Manager"}):
-                                mycol2.delete_one(record)
-                            for record in mycol2.find({'Type' : "User"}):
-                                #if mycol2.find({'Type' : "User"})["Employee Number"] >0:
-                                    #empno = mycol2.find({'Type' : "User"})["Employee Number"]
-                                    nolist.append(record["Employee Number"])
-                            #while z <= 4:
-                            for e in all_employees:
-                                number = nolist[e]
-                                tempname = mycol2.find_one({'Employee Number' : number})['username']
-                                for s in all_shifts:
-                                    if solver.Value(shifts[(e, d, s)]) == 1:
-                                        if availability_list[e][d][s] == 1:
-                                            print('Employee', tempname, 'works shift', s, '(Available).')
-                                        else:
-                                            print('Employee', tempname, 'works shift', s, '(Not Available).')
-                            print()
-                        print()
-                             # '(out of', number_of_employees * min_shifts_per_employee, ')')
-                        print()
-                        print('Stats')
-                        print('  - Number of shift requests met = %i' % solver.ObjectiveValue(), '(out of', number_of_employees * 7, ')')
-                        print('  - conflicts       : %i' % solver.NumConflicts())
-                        print('  - branches        : %i' % solver.NumBranches())
-                        print('  - wall time       : %f ms' % solver.WallTime())
-                        print('  - solutions found : %i' % solution_printer.solution_count())
-                        conflicts = solver.NumConflicts()
-                        shiftsmet = solver.ObjectiveValue()
-                        solutionsfound = solution_printer.solution_count()
-                        outof = number_of_employees * min_shifts_per_employee
-                        shiftfitness = shiftsmet/outof
-            def solution_count(self):
-                return self._solution_count
-'''
+##
         def on_solution_callback(self):
             self._solution_count += 1
+            '''
             if self._solution_count in self._solutions:
+
                 print('Solution %i' % self._solution_count)
                 for d in range(self._number_of_days):
                     #print('Day %i' % d)
@@ -514,23 +291,14 @@ def generaterota():
                         print('Saturday')
                     if(d == 6):
                         print('Sunday')
+                '''
 
-                    for e in range(self._number_of_employees):
-                        is_working = False
-                        for s in range(self._number_of_shifts):
-                            if self.Value(self._shifts[(e, d, s)]):
-                                is_working = True
-                                print('  Employee %i works shift %i' % (e, s))
-                        if not is_working:
-                            print('  Employee {} does not work'.format(e))
-                print()
-'''
-
+        def solution_count(self):
+            return self._solution_count
 
 
     #def mains(conflicts, solutionsfound):
-        # Data.
-'''
+        # Data
     noofuser = 0
     usercounter = 0
     listofemps = []
@@ -630,16 +398,13 @@ def generaterota():
 	       mycol2.delete_one(record)
     for record in mycol2.find({'Type' : "User"}):
 	       nolist.append(record["Employee Number"])
-    flash(nolist)
-    flash("no")
     number_of_employees = len(nolist)
-    number_of_shifts = 3
+    number_of_shifts = 2
     number_of_days = 7
     all_employees = range(number_of_employees)
     all_shifts = range(number_of_shifts)
     all_days = range(number_of_days)
     availability_list = masterlist
-    flash(availability_list)
     # Creates the model.
     model = cp_model.CpModel()
 
@@ -716,9 +481,45 @@ def generaterota():
             for s in all_shifts:
                 if solver.Value(shifts[(e, d, s)]) == 1:
                     if availability_list[e][d][s] == 1:
-                        print('Employee', tempname, 'works shift', s, '(Available).')
+                        print('Employeee', tempname, 'works the late shift.')
+                        if(d == 0):
+                            day = "Monday-Late"
+                        if(d == 1):
+                            day = "Tuesday-Late"
+                        if(d == 2):
+                            day = "Wednesday-Late"
+                        if(d == 3):
+                            day = "Thursday-Late"
+                        if(d == 4):
+                            day = "Friday-Late"
+                        if(d == 5):
+                            day = "Saturday-Late"
+                        if(d == 6):
+                            day = "Sunday-Late"
+                        if users.find_one({'username' : tempname})[day] == "Not Available":
+                            availability_fitness -= 10
+                        else:
+                            availability_fitness += 10
                     else:
-                        print('Employee', tempname, 'works shift', s, '(Not Available).')
+                        print('Employee', tempname, 'works the early shift.')
+                        if(d == 0):
+                            day = "Monday-Early"
+                        if(d == 1):
+                            day = "Tuesday-Early"
+                        if(d == 2):
+                            day = "Wednesday-Early"
+                        if(d == 3):
+                            day = "Thursday-Early"
+                        if(d == 4):
+                            day = "Friday-Early"
+                        if(d == 5):
+                            day = "Saturday-Early"
+                        if(d == 6):
+                            day = "Sunday-Early"
+                        if users.find_one({'username' : tempname})[day] == "Not Available":
+                            availability_fitness -= 10
+                        else:
+                            availability_fitness += 10
         print()
     print()
          # '(out of', number_of_employees * min_shifts_per_employee, ')')
@@ -734,26 +535,22 @@ def generaterota():
     solutionsfound = solution_printer.solution_count()
     outof = number_of_employees * min_shifts_per_employee
     shiftfitness = shiftsmet/outof
-    fitness(outof, conflicts, shiftsmet)
-    #return conflicts, solutionsfound
-    #mains(conflicts, solutionsfound)
-    flash(conflicts)
-    #return name
-    '''
+    #fitness(outof, conflicts, shiftsmet)
+    thisfitness = fitness(outof, conflicts, shiftsmet, availability_fitness)
+    if thisfitness > 0:
+        bestfitness = thisfitness
     if session['type'] == 'Manager':
         abort(403)
     else:
         return render_template('rota.html', name = name, conflicts=conflicts, solutionsfound=solutionsfound)
-'''
-def fitness(outof, conflicts, shiftsmet):
-    fitness = 0
-    flash(outof)
-    flash(conflicts)
-    fitness = fitness - conflicts
+
+def fitness(outof, conflicts, shiftsmet, availability_fitness):
+    thisfitness = 0
+    thisfitness = thisfitness + availability_fitness
     print("Fitness: ")
-    print(fitness)
-    return fitness
-'''
+    print(thisfitness)
+    return thisfitness
+
 @app.route("/userlanding", methods=['POST','GET'])
 def userlanding():
     users = mongo.db.users
