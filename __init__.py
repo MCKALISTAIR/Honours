@@ -257,6 +257,11 @@ def generaterota():
     bestfitness = 0
     availability_fitness = 0
     solutionsfound = 0
+    numblist = []
+    i = 0
+    for record in mycol.find({'Type' : "User"}):
+        numblist.append(record["Employee Number"])
+    print(numblist)
     class ShiftPartialSolutionPrinter(cp_model.CpSolverSolutionCallback):
         """Print intermediate solutions."""
         def __init__(self, shifts, number_of_employees, number_of_days, number_of_shifts, sols):
@@ -268,15 +273,19 @@ def generaterota():
             self._number_of_shifts = number_of_shifts
             self._solutions = set(sols)
             self._solution_count = 0
-##
-        def on_solution_callback(self):
-            self._solution_count += 1
-            '''
-            if self._solution_count in self._solutions:
 
+        def on_solution_callback(self):
+            users = mongo.db.users
+            myclient = pymongo.MongoClient("mongodb://MCKALISTAIR:Uacpad923!@ds145412.mlab.com:45412/users")
+            accounts = db.users
+            mydb = myclient["users"]
+            mycol = mydb["users"]
+            ntf = numblist[i]
+            thisname = users.find_one({'Employee Number' : ntf})['Name']
+            self._solution_count += 1
+            if self._solution_count in self._solutions:
                 print('Solution %i' % self._solution_count)
                 for d in range(self._number_of_days):
-                    #print('Day %i' % d)
                     if(d == 0):
                         print('Monday')
                     if(d == 1):
@@ -291,15 +300,29 @@ def generaterota():
                         print('Saturday')
                     if(d == 6):
                         print('Sunday')
-                '''
 
-        def solution_count(self):
-            return self._solution_count
+                    for e in range(self._number_of_employees):
+                        #i += 1
+                        is_working = False
+                        for s in range(self._number_of_shifts):
+                            if self.Value(self._shifts[(e, d, s)]):
+                                is_working = True
+                                print('  Employee %i works shift %i' % (e, s))
+                                #print(thisname)
+                        if not is_working:
+                            print('  Employee {} does not work'.format(e))
+                            #print(thisname)
+                            print()
+    def solution_count(self):
+        return self._solution_count
 
 
     #def mains(conflicts, solutionsfound):
         # Data
     noofuser = 0
+    n = 5
+    sol = 1
+    solution_lists = [[] for i in range(0, n)]
     usercounter = 0
     listofemps = []
     holdingpen = []
@@ -450,6 +473,7 @@ def generaterota():
             for d in all_days for s in all_shifts))
     solver = cp_model.CpSolver()
     solver.Solve(model)
+    sol += 1
     for d in all_days:
         if(d == 0):
             print('Monday')
@@ -496,6 +520,7 @@ def generaterota():
                             day = "Saturday-Late"
                         if(d == 6):
                             day = "Sunday-Late"
+                        solution_lists[sol].append((tempname, "late shift"))
                         if users.find_one({'username' : tempname})[day] == "Not Available":
                             availability_fitness -= 10
                         else:
@@ -516,11 +541,17 @@ def generaterota():
                             day = "Saturday-Early"
                         if(d == 6):
                             day = "Sunday-Early"
+                        print(sol)
+                        solution_lists[sol].append((tempname, "early shift"))
                         if users.find_one({'username' : tempname})[day] == "Not Available":
                             availability_fitness -= 10
                         else:
                             availability_fitness += 10
-        print()
+
+
+
+    flash(solution_lists)
+    print()
     print()
          # '(out of', number_of_employees * min_shifts_per_employee, ')')
     print()
@@ -529,10 +560,10 @@ def generaterota():
     print('  - conflicts       : %i' % solver.NumConflicts())
     print('  - branches        : %i' % solver.NumBranches())
     print('  - wall time       : %f ms' % solver.WallTime())
-    print('  - solutions found : %i' % solution_printer.solution_count())
+    #print('  - solutions found : %i' % solution_printer.solution_count())
     conflicts = solver.NumConflicts()
     shiftsmet = solver.ObjectiveValue()
-    solutionsfound = solution_printer.solution_count()
+    #solutionsfound = solution_printer.solution_count()
     outof = number_of_employees * min_shifts_per_employee
     shiftfitness = shiftsmet/outof
     #fitness(outof, conflicts, shiftsmet)
