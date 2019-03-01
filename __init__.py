@@ -257,11 +257,6 @@ def generaterota():
     bestfitness = 0
     availability_fitness = 0
     solutionsfound = 0
-    numblist = []
-    i = 0
-    for record in mycol.find({'Type' : "User"}):
-        numblist.append(record["Employee Number"])
-    print(numblist)
     class ShiftPartialSolutionPrinter(cp_model.CpSolverSolutionCallback):
         """Print intermediate solutions."""
         def __init__(self, shifts, number_of_employees, number_of_days, number_of_shifts, sols):
@@ -273,15 +268,89 @@ def generaterota():
             self._number_of_shifts = number_of_shifts
             self._solutions = set(sols)
             self._solution_count = 0
-
-        def on_solution_callback(self):
+            self.numblist = []
+            users = mongo.db.users
             users = mongo.db.users
             myclient = pymongo.MongoClient("mongodb://MCKALISTAIR:Uacpad923!@ds145412.mlab.com:45412/users")
             accounts = db.users
             mydb = myclient["users"]
             mycol = mydb["users"]
-            ntf = numblist[i]
-            thisname = users.find_one({'Employee Number' : ntf})['Name']
+            self.name = users.find_one({'username' : usern})['name']
+            for record in mycol.find({'Type' : "User"}):
+                self.numblist.append(record["name"])
+            ename = users.find_one({'Employee Number' : e})['name']
+            print(ename)
+            print(e)
+
+        def function():
+            users = mongo.db.users
+            myclient = pymongo.MongoClient("mongodb://MCKALISTAIR:Uacpad923!@ds145412.mlab.com:45412/users")
+            accounts = db.users
+            mydb = myclient["users"]
+            mycol = mydb["users"]
+            usern = session['username']
+            name = users.find_one({'username' : usern})['name']
+            for record in mycol.find({'Type' : "User"}):
+                names = record['username']
+                #finder = users.find_one({'username' : name})
+                if users.find_one({'username' : names})['Sunday-Early'] == "Available":
+                    sune = 1
+                else:
+                    sune = 0
+                if users.find_one({'username' : names})['Sunday-Late'] == "Available":
+                    sunl = 1
+                else:
+                    sunl = 0
+                if users.find_one({'username' : names})['Monday-Early'] == "Available":
+                    mone = 1
+                else:
+                    mone = 0
+                if users.find_one({'username' : names})['Monday-Late'] == "Available":
+                    monl = 1
+                else:
+                    monl = 0
+                if users.find_one({'username' : names})['Tuesday-Early'] == "Available":
+                    tuee = 1
+                else:
+                    tuee = 0
+                if users.find_one({'username' : names})['Tuesday-Late'] == "Available":
+                    tuel = 1
+                else:
+                    tuel = 0
+                if users.find_one({'username' : names})['Wednesday-Early'] == "Available":
+                    wede = 1
+                else:
+                    wede = 0
+                if users.find_one({'username' : names})['Wednesday-Late'] == "Available":
+                    wedl = 1
+                else:
+                    wedl = 0
+                if users.find_one({'username' : names})['Thursday-Early'] == "Available":
+                    thure = 1
+                else:
+                    thure = 0
+                if users.find_one({'username' : names})['Thursday-Late'] == "Available":
+                    thul = 1
+                else:
+                    thul = 0
+                if users.find_one({'username' : names})['Friday-Early'] == "Available":
+                    frie = 1
+                else:
+                    frie = 0
+                if users.find_one({'username' : names})['Friday-Late'] == "Available":
+                    fril = 1
+                else:
+                    fril = 0
+                if users.find_one({'username' : names})['Saturday-Early'] == "Available":
+                    sate = 1
+                else:
+                    sate = 0
+                if users.find_one({'username' : names})['Saturday-Late'] == "Available":
+                    satl = 1
+                else:
+                    satl = 0
+        #function()
+        def on_solution_callback(self):
             self._solution_count += 1
             if self._solution_count in self._solutions:
                 print('Solution %i' % self._solution_count)
@@ -302,15 +371,13 @@ def generaterota():
                         print('Sunday')
 
                     for e in range(self._number_of_employees):
-                        #i += 1
                         is_working = False
                         for s in range(self._number_of_shifts):
                             if self.Value(self._shifts[(e, d, s)]):
                                 is_working = True
-                                print('  Employee %i works shift %i' % (e, s))
-                                #print(thisname)
+                                print('  Employee %i works shift %i' % (ename, s))
                         if not is_working:
-                            print('  Employee {} does not work'.format(e))
+                            print('  Employee {} does not work'.format(ename))
                             #print(thisname)
                             print()
     def solution_count(self):
@@ -416,11 +483,13 @@ def generaterota():
         shiftlist = []
     #flash(masterlist[0][1])
     nolist = []
+    namelist = []
     mycol2 = mydb["users"]
     for record in mycol2.find({'Type' : "Manager"}):
 	       mycol2.delete_one(record)
     for record in mycol2.find({'Type' : "User"}):
 	       nolist.append(record["Employee Number"])
+           #namelist.append(record["name"])
     number_of_employees = len(nolist)
     number_of_shifts = 2
     number_of_days = 7
