@@ -509,6 +509,7 @@ def generaterota1():
         return render_template('rota.html', name = name, conflicts=conflicts)
 
 
+
 @app.route("/rota", methods=['POST','GET'])
 def generaterota():
     users = mongo.db.users
@@ -521,6 +522,9 @@ def generaterota():
     conflicts = 0
     bestfitness = 0
     generation = 0
+    thisrota = []
+    holdingcell = []
+    population = []
     #availability_fitness = 0
     solutionsfound = 0
     namelist = []
@@ -535,95 +539,16 @@ def generaterota():
             self._number_of_shifts = number_of_shifts
             self._solutions = set(sols)
             self._solution_count = 0
-            self.availability_fitness = 0
-
-            '''
-            self.numblist = []
-            users = mongo.db.users
-            users = mongo.db.users
-            myclient = pymongo.MongoClient("mongodb://MCKALISTAIR:Uacpad923!@ds145412.mlab.com:45412/users")
-            accounts = db.users
-            mydb = myclient["users"]
-            mycol = mydb["users"]
-            self.name = users.find_one({'username' : usern})['name']
-            for record in mycol.find({'Type' : "User"}):
-                self.numblist.append(record["name"])
-            ename = users.find_one({'Employee Number' : e})['name']
-            ''
-        def function():
-            users = mongo.db.users
-            myclient = pymongo.MongoClient("mongodb://MCKALISTAIR:Uacpad923!@ds145412.mlab.com:45412/users")
-            accounts = db.users
-            mydb = myclient["users"]
-            mycol = mydb["users"]
-            usern = session['username']
-            name = users.find_one({'username' : usern})['name']
-            for record in mycol.find({'Type' : "User"}):
-                names = record['username']
-                #finder = users.find_one({'username' : name})
-                if users.find_one({'username' : names})['Sunday-Early'] == "Available":
-                    sune = 1
-                else:
-                    sune = 0
-                if users.find_one({'username' : names})['Sunday-Late'] == "Available":
-                    sunl = 1
-                else:
-                    sunl = 0
-                if users.find_one({'username' : names})['Monday-Early'] == "Available":
-                    mone = 1
-                else:
-                    mone = 0
-                if users.find_one({'username' : names})['Monday-Late'] == "Available":
-                    monl = 1
-                else:
-                    monl = 0
-                if users.find_one({'username' : names})['Tuesday-Early'] == "Available":
-                    tuee = 1
-                else:
-                    tuee = 0
-                if users.find_one({'username' : names})['Tuesday-Late'] == "Available":
-                    tuel = 1
-                else:
-                    tuel = 0
-                if users.find_one({'username' : names})['Wednesday-Early'] == "Available":
-                    wede = 1
-                else:
-                    wede = 0
-                if users.find_one({'username' : names})['Wednesday-Late'] == "Available":
-                    wedl = 1
-                else:
-                    wedl = 0
-                if users.find_one({'username' : names})['Thursday-Early'] == "Available":
-                    thure = 1
-                else:
-                    thure = 0
-                if users.find_one({'username' : names})['Thursday-Late'] == "Available":
-                    thul = 1
-                else:
-                    thul = 0
-                if users.find_one({'username' : names})['Friday-Early'] == "Available":
-                    frie = 1
-                else:
-                    frie = 0
-                if users.find_one({'username' : names})['Friday-Late'] == "Available":
-                    fril = 1
-                else:
-                    fril = 0
-                if users.find_one({'username' : names})['Saturday-Early'] == "Available":
-                    sate = 1
-                else:
-                    sate = 0
-                if users.find_one({'username' : names})['Saturday-Late'] == "Available":
-                    satl = 1
-                else:
-                    satl = 0
-            '''
-        #function()
+            #self.availability_fitness = 0
 
         def on_solution_callback(self):
             self._solution_count += 1
+            availability_fitness = function()
             if self._solution_count in self._solutions:
                 print('Solution %i' % self._solution_count)
+                i=0
+                print(i)
+                print("i")
                 for d in range(self._number_of_days):
                     if(d == 0):
                         day = 'Monday'
@@ -671,15 +596,35 @@ def generaterota():
                                     combined = day + shift
                                     print(ename + ' works the ' + s)
                                     if users.find_one({'username' : ename})[combined] == "Not Available":
-                                        self.availability_fitness += 10
+                                        availability_fitness -= 10
                                     else:
-                                        self.availability_fitness -= 10
+                                        availability_fitness += 10
+                                        shiftsmet +=1
+                                    print(availability_fitness)
+                                    print("avup")
+                                    thisrota.append([ename,d,s])
                             if not is_working:
                                 print('{} does not work'.format(ename))
-                    avf = self.availability_fitness
+                                s = "Off"
+                                thisrota.append([ename,d,s])
+                            if i == 20:
+                                fit = availability_fitness + shiftsmet
+                                thisrota.append(fit)
+                                holdingcell.append(thisrota[:])
+                                thisrota[:] = []
+                                i = 0
+                            i+=1
+
+
+            thisfitness = availability_fitness
+            #if self._solution_count in self._solutions:
+                #print('Solution %i' % self._solution_count)
+                #print("calling fitness")
+            #function()
+                    #avf = self.availability_fitness ADD 22
 
         def solution_count(self):
-            return self._solution_count, avf
+            return self._solution_count, thisrota, shiftsmet
 
 
     #def mains(conflicts, solutionsfound):
@@ -750,9 +695,11 @@ def generaterota():
     shifts, number_of_employees, number_of_days, number_of_shifts, a_few_solutions)
     solver.SearchForAllSolutions(model, solution_printer)
 
+
+
     print()
     print('Stats')
-    print('  - Number of shift requests met = %i' % solver.ObjectiveValue(), '(out of', number_of_employees * 7, ')')
+    print('  - Number of shift requests met = %i' % shiftsmet, '(out of', number_of_employees * 7, ')')
     print('  - conflicts       : %i' % solver.NumConflicts())
     print('  - branches        : %i' % solver.NumBranches())
     print('  - wall time       : %f ms' % solver.WallTime())
@@ -766,32 +713,111 @@ def generaterota():
     outof = number_of_employees * min_shifts_per_employee
     shiftfitness = shiftsmet/outof
     #fitness(outof, conflicts, shiftsmet)
-    thisfitness = fitness(outof, conflicts, shiftsmet, avf, generation, time)
-    if thisfitness > 0:
-        bestfitness = thisfitness
+
+    population.append(holdingcell)
+    print(population)
+    thisrota[:] = []
+
+    tournamentselection(population)
+    #fitness(outof, conflicts, shiftsmet,generation, time, thisrota)
+    #thisfitness = fitness(outof, conflicts, shiftsmet, generation, time, thisrota)
+    #if thisfitness > 0:
+    #    bestfitness = thisfitness
     if session['type'] == 'Manager':
         abort(403)
     else:
-        return render_template('rota.html', name = name, conflicts=conflicts, solutionsfound=solutionsfound)
+        return render_template('rota.html', name = name, conflicts=conflicts, shiftsmet=shiftsmet, solutionsfound=solutionsfound, thisrota = thisrota, population=population)
+def fitness(shiftsmet, availability_fitness):
+    fitness = shiftsmet + availability_fitness
+    return fitness
+def function():
+    availability_fitness = 0
+    return availability_fitness
 
-def fitness(outof, conflicts, shiftsmet, availability_fitness, generation, time):
-    thisfitness = 0
-    thisfitness = thisfitness + availability_fitness + time
-    print("Fitness: ")
-    print(thisfitness)
-    generation +=1
-    print(generation)
-    return thisfitness, generation
-def fitness1(outof, conflicts, shiftsmet, availability_fitness, generation, extime):
-    thisfitness = 0
-    thisfitness = thisfitness + availability_fitness
-    print("Fitness: ")
-    print(thisfitness)
-    generation +=1
-    print(generation)
-    return thisfitness, generation
-def mutation():
-    f = "f"
+def tournamentselection(population):
+    firstwinner = None
+    secondwinner = None
+    while loop != 2:
+        choices = random.sample(set([0, 1, 2, 3]), 4)
+        one = choices[0]
+        two = choices[1]
+        three = choices[2]
+        four = choices[3]
+        print(population[0][1])
+        contenderone = population[0][one]
+        contendertwo = population[0][two]
+        contenderthree = population[0][three]
+        contenderfour = population[0][four]
+        contenderone_fitness = contenderone[21]
+        contendertwo_fitness = contendertwo[21]
+        contenderthree_fitness = contenderthree[21]
+        contenderfour_fitness = contenderfour[21]
+        if contenderone_fitness == contendertwo_fitness:
+            firstwinner = contenderone
+            loop += 1
+        elif contendertwo_fitness > contenderone_fitness:
+            firstwinner = contendertwo
+            loop += 1
+        else:
+            loop = 0
+        if contenderthree_fitness == contenderfour_fitness:
+            secondwinner = contenderthree
+            loop += 1
+        elif contenderfour_fitness > contenderthree_fitness:
+            secondwinner = contenderfour
+            loop += 1
+        else:
+            loop = 0
+    return firstwinner, secondwinner
+def randomselection(population):
+    choices = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
+    one = choices[0]
+    two = choices[1]
+    parentone = population[0][one]
+    parenttwo = population[0][two]
+    return parentone, parenttwo
+
+def onepointcrossover(firstwinner, secondwinner):
+    first_shift_extraction = [x[2] for x in firstwinner[0]]
+    second_shift_extraction = [x[2] for x in secondwinner[0]]
+    crossover_value = random.randint(1,19)
+    firsthalf = first_shift_extraction[0:crossover_value]
+    thirdhalf = first_shift_extraction[:crossover_value]
+    secondhalf = second_shift_extraction[:crossover_value]
+    fourthhalf = second_shift_extraction[:crossover_value]
+    thirdhalf.append(secondhalf)
+    firsthalf.append(secondhalf)
+    first_child = firsthalf
+    secondchild = thirdhalf
+    return first_child
+def twopointcrossover(firstwinner, secondwinner):
+    first_shift_extraction = [x[2] for x in firstwinner[0]]
+    second_shift_extraction = [x[2] for x in secondwinner[0]]
+    choices = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
+    if choices[0]>choices[1]:
+        first_choice = choices[0]
+        second_choice = choices[1]
+    else:
+        first_choice = choices[1]
+        second_choice = choices[0]
+    first_section_to_remove = first_shift_extraction[second_choice:first_choice]
+    second_section_to_remove = second_shift_extraction[second_choice:first_choice]
+    first_section = first_shift_extraction[0:second_choice]
+    second_section = first_shift_extraction[:first_choice]
+    third_section = second_shift_extraction[0:second_choice]
+    fourth_section = second_shift_extraction[:first_choice]
+    holdingcell = first_section.append(second_section_to_remove)
+    first_child = holdingcell.append(second_section)
+    holdingcell2 = third_section.append(first_section_to_remove)
+    second_child = holdingcell2.append(fourth_section)
+    return first_child, second_child
+def mutation(subject):
+    mutation_values = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
+    first_to_swap = subject[mutation_values[0]]
+    second_to_swap = subject[mutation_values[1]]
+    subject[mutation_values[0]] = second_to_swap
+    subject[mutation_values[1]] = first_to_swap
+    return subject
 
 @app.route("/userlanding", methods=['POST','GET'])
 def userlanding():
