@@ -730,6 +730,40 @@ def generaterota():
 def fitness(shiftsmet, availability_fitness):
     fitness = shiftsmet + availability_fitness
     return fitness
+def advanced_fitness():
+    employee_extraction = [x[2] for x in this_rota[0]]
+    shift_extraction = [x[1] for x in this_rota[0]]
+    day_extraction = [x[0] for x in this_rota[0]]
+    for x in employee_extraction:
+        num = users.find_one({'Employee Number' : x})
+        for y in day_extraction:
+            if(d == 0):
+                day = 'Monday'
+            if(d == 1):
+                day = 'Tuesday'
+            if(d == 2):
+                day = 'Wednesday'
+            if(d == 3):
+                day = 'Thursday'
+            if(d == 4):
+                day = 'Friday'
+            if(d == 5):
+                day = 'Saturday'
+            if(d == 6):
+                day = 'Sunday'
+            for z in shift_extraction:
+                if z = 0:
+                    shift = "Off"
+                elif z = 1:
+                    shift = "-early"
+                elif z = 2:
+                    shift = "-late"
+        combined = day + shift
+        if users.find_one({'Employee Number' : num})[combined] == "Available":
+            availability_fitness += 10
+        else:
+            availability_fitness += 10
+
 def function():
     availability_fitness = 0
     return availability_fitness
@@ -777,9 +811,28 @@ def randomselection(population):
     parenttwo = population[0][two]
     return parentone, parenttwo
 
+def partiallymappedcrossover(firstwinner, secondwinner):
+    first_employee_extraction = [x[2] for x in firstwinner[0]]
+    second_employee_extraction = [x[2] for x in secondwinner[0]]
+    choices = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
+    if choices[0]>choices[1]:
+        second_point = choices[0]
+        first_point = choices[1]
+    else:
+        second_point = choices[1]
+        first_point = choices[0]
+     x, y = first_point, second_point
+    for i in range(x, y+1):
+        if parent[i] not in child[x:y+1]:
+            position = i
+            while x <= position <= y:
+                        position = parent.index(child[position])
+                    child[position] = parent[i]
+
+    return first_child
 def onepointcrossover(firstwinner, secondwinner):
-    first_shift_extraction = [x[2] for x in firstwinner[0]]
-    second_shift_extraction = [x[2] for x in secondwinner[0]]
+    first_shift_extraction = [x[1] for x in firstwinner[0]]
+    second_shift_extraction = [x[1] for x in secondwinner[0]]
     crossover_value = random.randint(1,19)
     firsthalf = first_shift_extraction[0:crossover_value]
     thirdhalf = first_shift_extraction[:crossover_value]
@@ -791,8 +844,8 @@ def onepointcrossover(firstwinner, secondwinner):
     secondchild = thirdhalf
     return first_child
 def twopointcrossover(firstwinner, secondwinner):
-    first_shift_extraction = [x[2] for x in firstwinner[0]]
-    second_shift_extraction = [x[2] for x in secondwinner[0]]
+    first_shift_extraction = [x[1] for x in firstwinner[0]]
+    second_shift_extraction = [x[1] for x in secondwinner[0]]
     choices = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
     if choices[0]>choices[1]:
         first_choice = choices[0]
@@ -811,7 +864,7 @@ def twopointcrossover(firstwinner, secondwinner):
     holdingcell2 = third_section.append(first_section_to_remove)
     second_child = holdingcell2.append(fourth_section)
     return first_child, second_child
-def mutation(subject):
+def swapmutation(subject):
     mutation_values = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
     first_to_swap = subject[mutation_values[0]]
     second_to_swap = subject[mutation_values[1]]
