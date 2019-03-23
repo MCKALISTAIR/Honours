@@ -512,6 +512,11 @@ def generaterota1():
 
 @app.route("/rota", methods=['POST','GET'])
 def generaterota():
+    '''
+    if totaled == :
+        first()
+    elif
+    '''
     users = mongo.db.users
     myclient = pymongo.MongoClient("mongodb://MCKALISTAIR:Uacpad923!@ds145412.mlab.com:45412/users")
     accounts = db.users
@@ -544,6 +549,7 @@ def generaterota():
         def on_solution_callback(self):
             self._solution_count += 1
             availability_fitness = function()
+            shiftsmet = smfunction()
             if self._solution_count in self._solutions:
                 print('Solution %i' % self._solution_count)
                 i=0
@@ -596,10 +602,14 @@ def generaterota():
                                     combined = day + shift
                                     print(ename + ' works the ' + s)
                                     if users.find_one({'username' : ename})[combined] == "Not Available":
+                                        print("a")
                                         availability_fitness -= 10
                                     else:
+                                        print("aa")
                                         availability_fitness += 10
+                                        print("aaa")
                                         shiftsmet +=1
+                                        print("aaaa")
                                     print(availability_fitness)
                                     print("avup")
                                     thisrota.append([ename,d,s])
@@ -696,7 +706,7 @@ def generaterota():
     solver.SearchForAllSolutions(model, solution_printer)
 
 
-
+    shiftsmet = solver.ObjectiveValue()
     print()
     print('Stats')
     print('  - Number of shift requests met = %i' % shiftsmet, '(out of', number_of_employees * 7, ')')
@@ -707,7 +717,7 @@ def generaterota():
 
     #print('  - solutions found : %i' % solution_printer.solution_count())
     conflicts = solver.NumConflicts()
-    shiftsmet = solver.ObjectiveValue()
+
     time = solver.WallTime()
     #solutionsfound = solution_printer.solution_count()
     outof = number_of_employees * min_shifts_per_employee
@@ -752,11 +762,11 @@ def advanced_fitness():
             if(d == 6):
                 day = 'Sunday'
             for z in shift_extraction:
-                if z = 0:
+                if z == 0:
                     shift = "Off"
-                elif z = 1:
+                elif z == 1:
                     shift = "-early"
-                elif z = 2:
+                elif z == 2:
                     shift = "-late"
         combined = day + shift
         if users.find_one({'Employee Number' : num})[combined] == "Available":
@@ -767,10 +777,14 @@ def advanced_fitness():
 def function():
     availability_fitness = 0
     return availability_fitness
+def smfunction():
+    shiftsmet = 0
+    return shiftsmet
 
 def tournamentselection(population):
     firstwinner = None
     secondwinner = None
+    loop = 0
     while loop != 2:
         choices = random.sample(set([0, 1, 2, 3]), 4)
         one = choices[0]
@@ -810,7 +824,7 @@ def randomselection(population):
     parentone = population[0][one]
     parenttwo = population[0][two]
     return parentone, parenttwo
-
+'''
 def partiallymappedcrossover(firstwinner, secondwinner):
     first_employee_extraction = [x[2] for x in firstwinner[0]]
     second_employee_extraction = [x[2] for x in secondwinner[0]]
@@ -830,6 +844,7 @@ def partiallymappedcrossover(firstwinner, secondwinner):
                     child[position] = parent[i]
 
     return first_child
+'''
 def onepointcrossover(firstwinner, secondwinner):
     first_shift_extraction = [x[1] for x in firstwinner[0]]
     second_shift_extraction = [x[1] for x in secondwinner[0]]
