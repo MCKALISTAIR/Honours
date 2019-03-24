@@ -508,7 +508,13 @@ def generaterota1():
     else:
         return render_template('rota.html', name = name, conflicts=conflicts)
 
+@app.route("/generate", methods=['POST','GET'])
+def generate():
 
+    if session['type'] == 'Manager':
+        abort(403)
+    else:
+        return render_template('generate.html')
 
 @app.route("/rota", methods=['POST','GET'])
 def generaterota():
@@ -517,6 +523,14 @@ def generaterota():
         first()
     elif
     '''
+    if request.method == 'POST':
+        select = request.form['Selection']
+        print("if")
+        print(select)
+    #select = request.form['Selection']
+    print("notif")
+    select = request.form.get('Selection')
+    print(select)
     users = mongo.db.users
     myclient = pymongo.MongoClient("mongodb://MCKALISTAIR:Uacpad923!@ds145412.mlab.com:45412/users")
     accounts = db.users
