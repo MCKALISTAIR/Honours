@@ -27,6 +27,7 @@ import bcrypt
 import os
 import re
 import json
+import copy
 try:
     conn = MongoClient()
     #print("Connected to MongoDB")
@@ -515,22 +516,56 @@ def generate():
         abort(403)
     else:
         return render_template('generate.html')
+def swapmutation(subject):
+    print("SWAP")
+    print(subject)
+    mutation_values = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
+    value_one = mutation_values[0]
+    value_two = mutation_values[1]
+    first_to_swap = subject[value_one][1]
+    second_to_swap = subject[value_two][1]
+    subject[value_one][1] = second_to_swap
+    subject[value_two][1] = first_to_swap
+    mutated_subject = subject
+    return mutated_subject
 
+def scramblemutation(subject):
+    print("SCRAMBLE")
+    mutation_values = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
+    shift_extraction = []
+    for x in subject:
+        shift_extraction.append(x[1])
+    choices = random.sample(set([2,4,6,8,10,12,14,16,18,20]), 2)
+    if choices[0]>choices[1]:
+        first_choice = choices[0]
+        second_choice = choices[1]
+    else:
+        first_choice = choices[1]
+        second_choice = choices[0]
+    print(shift_extraction[second_choice:first_choice])
+    section_to_remove = shift_extraction[second_choice:first_choice]
+    print(section_to_remove)
+    first_part = shift_extraction[0:second_choice]
+    second_part = shift_extraction[first_choice:]
+    section_to_remove.reverse()
+    mutated_section = section_to_remove
+    for i in mutated_section:
+        first_part.append(i)
+    for i in second_part:
+        first_part.append(i)
+    i = 0
+    print(subject)
+    print(first_part)
+    for x in subject:
+        x[1] = first_part[i]
+        i+=1
+    return subject
 @app.route("/rota", methods=['POST','GET'])
 def generaterota():
-    '''
-    if totaled == :
-        first()
-    elif
-    '''
-    if request.method == 'POST':
-        select = request.form['Selection']
-        print("if")
-        print(select)
-    #select = request.form['Selection']
-    print("notif")
-    select = request.form.get('Selection')
-    print(select)
+
+    selection = request.form.get('Selection')
+    crossover = request.form.get('Crossover')
+    mutation = request.form.get('Mutation')
     users = mongo.db.users
     myclient = pymongo.MongoClient("mongodb://MCKALISTAIR:Uacpad923!@ds145412.mlab.com:45412/users")
     accounts = db.users
@@ -741,8 +776,43 @@ def generaterota():
     population.append(holdingcell)
     print(population)
     thisrota[:] = []
+    solution_count = 0
+    list_of_solutions = []
+    '''
+    if selection == "Tournament":
+        tournamentselection(population, crossover, mutation)
+    elif selection == "Random":
+        randomselection(population, crossover, mutation)
+    '''
+    while solution_count !=5:
 
-    tournamentselection(population)
+
+        if selection == "Tournament":
+            tournamentselection(population, crossover, mutation)
+        elif selection == "Random":
+            randomselection(population, crossover, mutation)
+
+        solution_count += 1
+        print("Solution")
+        print(solution_count)
+        if mutation == "Swap":
+            mutated_subject = swapmutation(subject)
+        elif mutation == "Scramble":
+            subject = scramblemutation(subject)
+        '''
+        fitlist = []
+        i = 0
+        for x in population:
+            fitlist.append(x[i][21])
+            i+=1
+        min_fit_index = fitlist.index(min(fitlist))
+        min_fit = min(fitlist)
+        if fit > min_fit:
+            population[0][min_fit_index] = subject
+        '''
+
+
+    print("DONE")
     #fitness(outof, conflicts, shiftsmet,generation, time, thisrota)
     #thisfitness = fitness(outof, conflicts, shiftsmet, generation, time, thisrota)
     #if thisfitness > 0:
@@ -750,7 +820,7 @@ def generaterota():
     if session['type'] == 'Manager':
         abort(403)
     else:
-        return render_template('rota.html', name = name, conflicts=conflicts, shiftsmet=shiftsmet, solutionsfound=solutionsfound, thisrota = thisrota, population=population)
+        return render_template('rota.html', name = name, conflicts=conflicts, shiftsmet=shiftsmet, solutionsfound=solutionsfound, thisrota = thisrota, population=population, crossover = crossover, mutation = mutation)
 def fitness(shiftsmet, availability_fitness):
     fitness = shiftsmet + availability_fitness
     return fitness
@@ -795,7 +865,8 @@ def smfunction():
     shiftsmet = 0
     return shiftsmet
 
-def tournamentselection(population):
+def tournamentselection(population, crossover, mutation):
+    print("TOURNAMENT")
     firstwinner = None
     secondwinner = None
     loop = 0
@@ -830,37 +901,79 @@ def tournamentselection(population):
             loop += 1
         else:
             loop = 0
+    if crossover == "Two point":
+        twopointcrossover(firstwinner, secondwinner, mutation)
+    elif crossover == "Partially mapped":
+        partiallymappedcrossover(firstwinner, secondwinner, mutation)
     return firstwinner, secondwinner
-def randomselection(population):
-    choices = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
+def randomselection(population, crossover, mutation):
+    print("RANDOM")
+    choices = random.sample(set([0, 1, 2, 3]), 2)
     one = choices[0]
     two = choices[1]
-    parentone = population[0][one]
-    parenttwo = population[0][two]
-    return parentone, parenttwo
-'''
-def partiallymappedcrossover(firstwinner, secondwinner):
-    first_employee_extraction = [x[2] for x in firstwinner[0]]
-    second_employee_extraction = [x[2] for x in secondwinner[0]]
-    choices = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
+    firstwinner = population[0][one]
+    secondwinner = population[0][two]
+    if crossover == "Two point":
+        twopointcrossover(firstwinner, secondwinner, mutation)
+    elif crossover == "Partially mapped":
+        partiallymappedcrossover(firstwinner, secondwinner, mutation)
+    return firstwinner, secondwinner
+
+def partiallymappedcrossover(firstwinner, secondwinner, mutation):
+    print("PARTIALY MAPPED")
+    firstwinner.pop(21)
+    secondwinner.pop(21)
+    first_shift_extraction = []
+    second_shift_extraction = []
+    for x in firstwinner:
+        first_shift_extraction.append(x[1])
+    for x in secondwinner:
+        second_shift_extraction.append(x[1])
+    choices = random.sample(set([1,6,11,16,20]), 2)
     if choices[0]>choices[1]:
         second_point = choices[0]
         first_point = choices[1]
     else:
         second_point = choices[1]
         first_point = choices[0]
-     x, y = first_point, second_point
-    for i in range(x, y+1):
-        if parent[i] not in child[x:y+1]:
-            position = i
-            while x <= position <= y:
-                        position = parent.index(child[position])
-                    child[position] = parent[i]
+    swath = []
+    swath = first_shift_extraction[second_point:first_point]
 
+    i=0
+    while found = 0:
+        for v in swath:
+            swath_value = swath[i]
+            for x in second_shift_extraction[second_point:first_point]:
+                if swatch_value != x:
+                    related_value = second_shift_extraction[x]
+                    related_index = second_shift_extraction.index(related_value)
+                    found = 1
+                else:
+                    found = 0
+                    i+=1
+        print("Not found")
+    p1_index_value = first_shift_extraction[related_index]
+    for x in swath:
+        if p1_index_value != x:
+            
+
+
+
+    index = first_shift_extraction.index(swath[i])
+    value = first_shift_extraction[index]
+
+    parent2_index = second_shift_extraction.index()
+    parent2_value = second_shift_extraction[]
+    if mutation == "Swap":
+        swapmutation(subject)
+    elif mutation == "Scramble":
+        scramblemutation(subject)
     return first_child
-'''
+
 def onepointcrossover(firstwinner, secondwinner):
-    first_shift_extraction = [x[1] for x in firstwinner[0]]
+    first_shift_extraction = []
+    first_shift_extraction = [item[0] for item in firstwinner]
+    print(first_shift_extraction)
     second_shift_extraction = [x[1] for x in secondwinner[0]]
     crossover_value = random.randint(1,19)
     firsthalf = first_shift_extraction[0:crossover_value]
@@ -872,34 +985,74 @@ def onepointcrossover(firstwinner, secondwinner):
     first_child = firsthalf
     secondchild = thirdhalf
     return first_child
-def twopointcrossover(firstwinner, secondwinner):
-    first_shift_extraction = [x[1] for x in firstwinner[0]]
-    second_shift_extraction = [x[1] for x in secondwinner[0]]
-    choices = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
+def twopointcrossover(firstwinner, secondwinner, mutation):
+    print("TWO POINT")
+    firstwinner.pop(21)
+    secondwinner.pop(21)
+    first_shift_extraction = []
+    second_shift_extraction = []
+    for x in firstwinner:
+        first_shift_extraction.append(x[1])
+    for x in secondwinner:
+        second_shift_extraction.append(x[1])
+    print(first_shift_extraction)
+    choices = random.sample(set([2, 4, 6, 8, 10, 12, 14, 16, 18, 20]), 2)
     if choices[0]>choices[1]:
         first_choice = choices[0]
         second_choice = choices[1]
     else:
         first_choice = choices[1]
         second_choice = choices[0]
+    holdingcell = []
+    holdingcell2 = []
+    first_child = []
+    print("fse")
+    print(first_shift_extraction)
+    print("sse")
+    print(second_shift_extraction)
     first_section_to_remove = first_shift_extraction[second_choice:first_choice]
     second_section_to_remove = second_shift_extraction[second_choice:first_choice]
     first_section = first_shift_extraction[0:second_choice]
-    second_section = first_shift_extraction[:first_choice]
+    second_section = first_shift_extraction[first_choice:]
+    print("first")
+    print(first_choice)
+    print("second")
+    print(second_choice)
+    print("first section")
+    print(first_section)
+    print("second section")
+    print(second_section)
+    print("first remove")
+    print(first_section_to_remove)
+    print("second remove")
+    print(second_section_to_remove)
+    '''
     third_section = second_shift_extraction[0:second_choice]
     fourth_section = second_shift_extraction[:first_choice]
-    holdingcell = first_section.append(second_section_to_remove)
-    first_child = holdingcell.append(second_section)
-    holdingcell2 = third_section.append(first_section_to_remove)
-    second_child = holdingcell2.append(fourth_section)
-    return first_child, second_child
-def swapmutation(subject):
-    mutation_values = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
-    first_to_swap = subject[mutation_values[0]]
-    second_to_swap = subject[mutation_values[1]]
-    subject[mutation_values[0]] = second_to_swap
-    subject[mutation_values[1]] = first_to_swap
-    return subject
+    '''
+    for i in second_section_to_remove:
+        first_section.append(i)
+    for i in second_section:
+        first_section.append(i)
+    first_child = first_section
+    print("first child")
+    print(first_child)
+    print(firstwinner)
+    i = 0
+    for x in firstwinner:
+        print(x)
+        x[1] = first_child[i]
+        i+=1
+    subject = firstwinner
+    #holdingcell2 = third_section.append(first_section_to_remove)
+    #second_child = holdingcell2.append(fourth_section)
+    if mutation == "Swap":
+        swapmutation(subject)
+    elif mutation == "Scramble":
+        scramblemutation(subject)
+    return first_child
+
+
 
 @app.route("/userlanding", methods=['POST','GET'])
 def userlanding():

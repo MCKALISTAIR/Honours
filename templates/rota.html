@@ -6,40 +6,12 @@
 <body>
   <h1>Hello {{ name }},</h1>
 
-  <form class="form-inline" method="POST" action="/rota">
-
-  <div class="pull-left">
-    <select name="Selection" class="selectpicker form-control">
-      <option value="Tournament">Tournament</option>
-      <option value="saab">Saab</option>
-    </select>
-    <br><br>
-  </div>
-
-  <div class="centre">
-    <select name="Crossover" class="selectpicker form-control">
-      <option value="Two point">Two point</option>
-      <option value="saab">Saab</option>
-    </select>
-    <br><br>
-  </div>
-
-
-  <div class="centre">
-    <select name="Mutation" class="selectpicker form-control">
-      <option value="Swap">Swap</option>
-      <option value="saab">Saab</option>
-    </select>
-    <br><br>
-  </div>
-
-
-
+  
   <div class="pull-right">
-    <input type="submit" value="Submit">
-  <a href="/rota" class ="btn btn-primary"  style="margin-top:-1.8%;">Generate</a>
+
+  <a href="/generate" class ="btn btn-primary"  style="margin-top:-1.8%;">Back</a>
   </div>
-  </form>
+
   <table>
   <thead><tr><th>Stats</th></thead>
   <tbody>
