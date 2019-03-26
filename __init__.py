@@ -342,173 +342,6 @@ def fillshiftlist():
         masterlist.append(shiftlist)
         shiftlist = []
     return masterlist
-@app.route("/rota1", methods=['POST','GET'])
-def generaterota1():
-    #requests
-    start = time.time()
-    users = mongo.db.users
-    myclient = pymongo.MongoClient("mongodb://MCKALISTAIR:Uacpad923!@ds145412.mlab.com:45412/users")
-    accounts = db.users
-    mydb = myclient["users"]
-    mycol = mydb["users"]
-    usern = session['username']
-    name = users.find_one({'username' : usern})['name']
-    nolist = []
-    availability_fitness = 0
-    z = 1
-    mycol2 = mydb["users"]
-    for record in mycol2.find({'Type' : "Manager"}):
-        mycol2.delete_one(record)
-    for record in mycol2.find({'Type' : "User"}):
-        #if mycol2.find({'Type' : "User"})["Employee Number"] >0:
-            #empno = mycol2.find({'Type' : "User"})["Employee Number"]
-            nolist.append(record["Employee Number"])
-    number_of_employees = len(nolist)
-    number_of_shifts = 2
-    number_of_days = 7
-    all_employees = range(number_of_employees)
-    all_shifts = range(number_of_shifts)
-    all_days = range(number_of_days)
-    masterlist = fillshiftlist()
-    availability_list = masterlist
-    model = cp_model.CpModel()
-
-    # Creates shift variables.
-    # shifts[(n, d, s)]: employee 'n' works shift 's' on day 'd'.
-    shifts = {}
-    for e in all_employees:
-        for d in all_days:
-            for s in all_shifts:
-                shifts[(e, d, s)] = model.NewBoolVar('shift_e%id%is%i' % (e, d,
-                                                                          s))
-
-    # Each shift is assigned to exactly one employee in the schedule period.
-    for d in all_days:
-        for s in all_shifts:
-            model.Add(sum(shifts[(e, d, s)] for e in all_employees) == 1)
-
-    # Each employee works at most one shift per day.
-    for e in all_employees:
-        for d in all_days:
-            model.Add(sum(shifts[(e, d, s)] for s in all_shifts) <= 1)
-
-    # min_shifts_per_employee is the largest integer such that every employee
-    # can be assigned at least that many shifts. If the number of employees doesn't
-    # divide the total number of shifts over the schedule period,
-    # some employees have to work one more shift, for a total of
-    # min_shifts_per_employee + 1.
-    min_shifts_per_employee = (number_of_shifts * number_of_days) // number_of_employees
-    max_shifts_per_employee = min_shifts_per_employee + 1
-    for n in all_employees:
-        num_shifts_worked = sum(
-            shifts[(e, d, s)] for d in all_days for s in all_shifts)
-        model.Add(min_shifts_per_employee <= num_shifts_worked)
-        model.Add(num_shifts_worked <= max_shifts_per_employee)
-    solver = cp_model.CpSolver()
-
-    model.Maximize(
-        sum(availability_list[e][d][s] * shifts[(e, d, s)] for e in all_employees
-            for d in all_days for s in all_shifts))
-    solver = cp_model.CpSolver()
-    solver.Solve(model)
-    for d in all_days:
-        if(d == 0):
-            print()
-            print('Monday')
-        if(d == 1):
-            print()
-            print('Tuesday')
-        if(d == 2):
-            print()
-            print('Wednesday')
-        if(d == 3):
-            print()
-            print('Thursday')
-        if(d == 4):
-            print()
-            print('Friday')
-        if(d == 5):
-            print()
-            print('Saturday')
-        if(d == 6):
-            print()
-            print('Sunday')
-        nolist = []
-        z = 1
-        mycol2 = mydb["users"]
-        for record in mycol2.find({'Type' : "Manager"}):
-            mycol2.delete_one(record)
-        for record in mycol2.find({'Type' : "User"}):
-            #if mycol2.find({'Type' : "User"})["Employee Number"] >0:
-                #empno = mycol2.find({'Type' : "User"})["Employee Number"]
-                nolist.append(record["Employee Number"])
-        #while z <= 4:
-        for e in all_employees:
-            number = nolist[e]
-            tempname = mycol2.find_one({'Employee Number' : number})['username']
-            for s in all_shifts:
-                if solver.Value(shifts[(e, d, s)]) == 1:
-                    if availability_list[e][d][s] == 1:
-                        print('Employeee', tempname, 'works the late shift.')
-                        if(d == 0):
-                            day = "Monday-Late"
-                        if(d == 1):
-                            day = "Tuesday-Late"
-                        if(d == 2):
-                            day = "Wednesday-Late"
-                        if(d == 3):
-                            day = "Thursday-Late"
-                        if(d == 4):
-                            day = "Friday-Late"
-                        if(d == 5):
-                            day = "Saturday-Late"
-                        if(d == 6):
-                            day = "Sunday-Late"
-                        if users.find_one({'username' : tempname})[day] == "Not Available":
-                            availability_fitness += 10
-                        else:
-                            availability_fitness -= 10
-                    else:
-                        print('Employee', tempname, 'works the early shift.')
-                        if(d == 0):
-                            day = "Monday-Early"
-                        if(d == 1):
-                            day = "Tuesday-Early"
-                        if(d == 2):
-                            day = "Wednesday-Early"
-                        if(d == 3):
-                            day = "Thursday-Early"
-                        if(d == 4):
-                            day = "Friday-Early"
-                        if(d == 5):
-                            day = "Saturday-Early"
-                        if(d == 6):
-                            day = "Sunday-Early"
-                        if users.find_one({'username' : tempname})[day] == "Not Available":
-                            availability_fitness += 10
-                        else:
-                            availability_fitness -= 10
-            end = time.time()
-    extime = end - start
-    print('Statistics')
-    print('  - Number of shift requests met = %i' % solver.ObjectiveValue(),
-          '(out of', number_of_employees * 7, ')')
-    print('  - wall time       : %f s' % extime)
-    #print('  - solutions found : %i' % solution_printer.solution_count())
-    conflicts = solver.NumConflicts()
-    shiftsmet = solver.ObjectiveValue()
-    #solutionsfound = solution_printer.solution_count()
-    outof = number_of_employees * min_shifts_per_employee
-    shiftfitness = shiftsmet/outof
-    #fitness(outof, conflicts, shiftsmet)
-    thisfitness = fitness1(outof, conflicts, shiftsmet, availability_fitness, generation, extime)
-    if thisfitness > 0:
-        bestfitness = thisfitness
-    if session['type'] == 'Manager':
-        abort(403)
-    else:
-        return render_template('rota.html', name = name, conflicts=conflicts)
-
 @app.route("/generate", methods=['POST','GET'])
 def generate():
 
@@ -516,21 +349,9 @@ def generate():
         abort(403)
     else:
         return render_template('generate.html')
-def swapmutation(subject):
-    print("SWAP")
-    print(subject)
-    mutation_values = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
-    value_one = mutation_values[0]
-    value_two = mutation_values[1]
-    first_to_swap = subject[value_one][1]
-    second_to_swap = subject[value_two][1]
-    subject[value_one][1] = second_to_swap
-    subject[value_two][1] = first_to_swap
-    mutated_subject = subject
-    return mutated_subject
 
-def scramblemutation(subject):
-    print("SCRAMBLE")
+def inversemutation(subject):
+    print("INVERSE")
     mutation_values = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
     shift_extraction = []
     for x in subject:
@@ -542,9 +363,7 @@ def scramblemutation(subject):
     else:
         first_choice = choices[1]
         second_choice = choices[0]
-    print(shift_extraction[second_choice:first_choice])
     section_to_remove = shift_extraction[second_choice:first_choice]
-    print(section_to_remove)
     first_part = shift_extraction[0:second_choice]
     second_part = shift_extraction[first_choice:]
     section_to_remove.reverse()
@@ -554,12 +373,11 @@ def scramblemutation(subject):
     for i in second_part:
         first_part.append(i)
     i = 0
-    print(subject)
-    print(first_part)
     for x in subject:
         x[1] = first_part[i]
         i+=1
     return subject
+mutated_subject = None
 @app.route("/rota", methods=['POST','GET'])
 def generaterota():
 
@@ -703,10 +521,7 @@ def generaterota():
 	       mycol2.delete_one(record)
     for record in mycol2.find({'Type' : "User"}):
 	       nolist.append(record["Employee Number"])
-           #namelist.append(record["name"])
     number_of_employees = len(nolist)
-    print(nolist)
-    print(range(number_of_employees))
     number_of_shifts = 2
     number_of_days = 7
     all_employees = range(number_of_employees)
@@ -767,7 +582,7 @@ def generaterota():
     #print('  - solutions found : %i' % solution_printer.solution_count())
     conflicts = solver.NumConflicts()
 
-    time = solver.WallTime()
+    timet = solver.WallTime()
     #solutionsfound = solution_printer.solution_count()
     outof = number_of_employees * min_shifts_per_employee
     shiftfitness = shiftsmet/outof
@@ -785,31 +600,41 @@ def generaterota():
         randomselection(population, crossover, mutation)
     '''
     while solution_count !=5:
-
-
+        start = time.time()
         if selection == "Tournament":
+            print("Tournament")
             tournamentselection(population, crossover, mutation)
         elif selection == "Random":
+            print("Random")
             randomselection(population, crossover, mutation)
-
+        end = time.time()
         solution_count += 1
         print("Solution")
         print(solution_count)
+        print("time")
+        print(end - start)
+        global mutated_subject
+        print(mutated_subject)
+        '''
         if mutation == "Swap":
             mutated_subject = swapmutation(subject)
-        elif mutation == "Scramble":
-            subject = scramblemutation(subject)
+        elif mutation == "Inverse":
+            subject = inversemutation(subject)
         '''
+
+
+
         fitlist = []
         i = 0
         for x in population:
+            print(x)
             fitlist.append(x[i][21])
             i+=1
         min_fit_index = fitlist.index(min(fitlist))
         min_fit = min(fitlist)
         if fit > min_fit:
-            population[0][min_fit_index] = subject
-        '''
+            population[0][min_fit_index] = mutated_subject
+
 
 
     print("DONE")
@@ -881,6 +706,9 @@ def tournamentselection(population, crossover, mutation):
         contendertwo = population[0][two]
         contenderthree = population[0][three]
         contenderfour = population[0][four]
+        print("3")
+        print(contenderone)
+        print(contenderone[20])
         contenderone_fitness = contenderone[21]
         contendertwo_fitness = contendertwo[21]
         contenderthree_fitness = contenderthree[21]
@@ -940,22 +768,42 @@ def partiallymappedcrossover(firstwinner, secondwinner, mutation):
     swath = first_shift_extraction[second_point:first_point]
 
     i=0
-    while found = 0:
-        for v in swath:
-            swath_value = swath[i]
-            for x in second_shift_extraction[second_point:first_point]:
-                if swatch_value != x:
-                    related_value = second_shift_extraction[x]
-                    related_index = second_shift_extraction.index(related_value)
-                    found = 1
+    r=0
+    value = 0
+    while terminate == 0:
+        if r != 0:
+            p1_value = swath[p2_index]
+            if p1_value in second_shift_extraction:
+                if p1_value in swath:
+                    value = p1_value
                 else:
-                    found = 0
-                    i+=1
-        print("Not found")
-    p1_index_value = first_shift_extraction[related_index]
-    for x in swath:
-        if p1_index_value != x:
-            
+                    found_you = second_shift_extraction.index(p1_value)
+                    child.insert(found_you, value_to_insert)
+        else:
+            while found == 0:
+                for v in swath:
+                    swath_value = swath[i]
+                    for x in second_shift_extraction[second_point:first_point]:
+                        if swath_value != x:
+                            related_value = x #to insert
+                            related_index = second_shift_extraction.index(related_value)
+                            found = 1
+                        else:
+                            found = 0
+                            i+=1
+                print("Not found")
+            p1_index_value = first_shift_extraction[related_index]
+            value_to_insert = x
+
+
+        if p1_index_value in second_shift_extraction[second_point:first_point]:
+            p2_index = second_shift_extraction[second_point:first_point].index(p1_index_value)
+            if p2_index in swath:
+                value = p2_index
+                r = 1
+
+
+
 
 
 
@@ -963,11 +811,11 @@ def partiallymappedcrossover(firstwinner, secondwinner, mutation):
     value = first_shift_extraction[index]
 
     parent2_index = second_shift_extraction.index()
-    parent2_value = second_shift_extraction[]
+    #parent2_value = second_shift_extraction[]
     if mutation == "Swap":
         swapmutation(subject)
-    elif mutation == "Scramble":
-        scramblemutation(subject)
+    elif mutation == "Inverse":
+        inversemutation(subject)
     return first_child
 
 def onepointcrossover(firstwinner, secondwinner):
@@ -995,7 +843,6 @@ def twopointcrossover(firstwinner, secondwinner, mutation):
         first_shift_extraction.append(x[1])
     for x in secondwinner:
         second_shift_extraction.append(x[1])
-    print(first_shift_extraction)
     choices = random.sample(set([2, 4, 6, 8, 10, 12, 14, 16, 18, 20]), 2)
     if choices[0]>choices[1]:
         first_choice = choices[0]
@@ -1006,53 +853,39 @@ def twopointcrossover(firstwinner, secondwinner, mutation):
     holdingcell = []
     holdingcell2 = []
     first_child = []
-    print("fse")
-    print(first_shift_extraction)
-    print("sse")
-    print(second_shift_extraction)
     first_section_to_remove = first_shift_extraction[second_choice:first_choice]
     second_section_to_remove = second_shift_extraction[second_choice:first_choice]
     first_section = first_shift_extraction[0:second_choice]
     second_section = first_shift_extraction[first_choice:]
-    print("first")
-    print(first_choice)
-    print("second")
-    print(second_choice)
-    print("first section")
-    print(first_section)
-    print("second section")
-    print(second_section)
-    print("first remove")
-    print(first_section_to_remove)
-    print("second remove")
-    print(second_section_to_remove)
-    '''
-    third_section = second_shift_extraction[0:second_choice]
-    fourth_section = second_shift_extraction[:first_choice]
-    '''
     for i in second_section_to_remove:
         first_section.append(i)
     for i in second_section:
         first_section.append(i)
     first_child = first_section
-    print("first child")
-    print(first_child)
-    print(firstwinner)
     i = 0
     for x in firstwinner:
         print(x)
         x[1] = first_child[i]
         i+=1
     subject = firstwinner
-    #holdingcell2 = third_section.append(first_section_to_remove)
-    #second_child = holdingcell2.append(fourth_section)
     if mutation == "Swap":
         swapmutation(subject)
-    elif mutation == "Scramble":
-        scramblemutation(subject)
+    elif mutation == "Inverse":
+        inversemutation(subject)
     return first_child
-
-
+def swapmutation(subject):
+    print("SWAP")
+    print(subject)
+    mutation_values = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
+    value_one = mutation_values[0]
+    value_two = mutation_values[1]
+    first_to_swap = subject[value_one][1]
+    second_to_swap = subject[value_two][1]
+    subject[value_one][1] = second_to_swap
+    subject[value_two][1] = first_to_swap
+    global mutated_subject
+    mutated_subject = subject
+    return subject
 
 @app.route("/userlanding", methods=['POST','GET'])
 def userlanding():
