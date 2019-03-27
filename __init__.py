@@ -380,7 +380,6 @@ def inversemutation(subject):
 mutated_subject = None
 @app.route("/rota", methods=['POST','GET'])
 def generaterota():
-
     selection = request.form.get('Selection')
     crossover = request.form.get('Crossover')
     mutation = request.form.get('Mutation')
@@ -564,7 +563,7 @@ def generaterota():
         model.Add(min_shifts_per_employee <= num_shifts_worked)
         model.Add(num_shifts_worked <= max_shifts_per_employee)
     solver = cp_model.CpSolver()
-    a_few_solutions = range(5)
+    a_few_solutions = range(50)
     solution_printer = ShiftPartialSolutionPrinter(
     shifts, number_of_employees, number_of_days, number_of_shifts, a_few_solutions)
     solver.SearchForAllSolutions(model, solution_printer)
@@ -587,8 +586,8 @@ def generaterota():
     outof = number_of_employees * min_shifts_per_employee
     shiftfitness = shiftsmet/outof
     #fitness(outof, conflicts, shiftsmet)
-
     population.append(holdingcell)
+    print("population")
     print(population)
     thisrota[:] = []
     solution_count = 0
@@ -599,7 +598,8 @@ def generaterota():
     elif selection == "Random":
         randomselection(population, crossover, mutation)
     '''
-    while solution_count !=5:
+    time_s = 0
+    while solution_count !=50:
         start = time.time()
         if selection == "Tournament":
             print("Tournament")
@@ -607,37 +607,38 @@ def generaterota():
         elif selection == "Random":
             print("Random")
             randomselection(population, crossover, mutation)
-        end = time.time()
         solution_count += 1
         print("Solution")
         print(solution_count)
-        print("time")
-        print(end - start)
         global mutated_subject
         print(mutated_subject)
-        '''
-        if mutation == "Swap":
-            mutated_subject = swapmutation(subject)
-        elif mutation == "Inverse":
-            subject = inversemutation(subject)
-        '''
-
-
-
+        advanced_fitness()
+        print("after")
+        print(mutated_subject)
         fitlist = []
         i = 0
         for x in population:
+            print("x")
             print(x)
-            fitlist.append(x[i][21])
+            print(x[i])
+            fitlist.append(x[i][-1])
             i+=1
         min_fit_index = fitlist.index(min(fitlist))
         min_fit = min(fitlist)
+        print("ms")
+        print(mutated_subject)
+        fit = mutated_subject[-1]
         if fit > min_fit:
             population[0][min_fit_index] = mutated_subject
-
-
-
+        end = time.time()
+        print("Time")
+        print(end - start)
+        seconds = end - start
+        time_s = time_s + seconds
+        average = time_s/50
     print("DONE")
+    print("Average time")
+    print(average)
     #fitness(outof, conflicts, shiftsmet,generation, time, thisrota)
     #thisfitness = fitness(outof, conflicts, shiftsmet, generation, time, thisrota)
     #if thisfitness > 0:
@@ -650,38 +651,60 @@ def fitness(shiftsmet, availability_fitness):
     fitness = shiftsmet + availability_fitness
     return fitness
 def advanced_fitness():
-    employee_extraction = [x[2] for x in this_rota[0]]
-    shift_extraction = [x[1] for x in this_rota[0]]
-    day_extraction = [x[0] for x in this_rota[0]]
-    for x in employee_extraction:
-        num = users.find_one({'Employee Number' : x})
-        for y in day_extraction:
-            if(d == 0):
-                day = 'Monday'
-            if(d == 1):
-                day = 'Tuesday'
-            if(d == 2):
-                day = 'Wednesday'
-            if(d == 3):
-                day = 'Thursday'
-            if(d == 4):
-                day = 'Friday'
-            if(d == 5):
-                day = 'Saturday'
-            if(d == 6):
-                day = 'Sunday'
-            for z in shift_extraction:
-                if z == 0:
-                    shift = "Off"
-                elif z == 1:
-                    shift = "-early"
-                elif z == 2:
-                    shift = "-late"
+    users = mongo.db.users
+    myclient = pymongo.MongoClient("mongodb://MCKALISTAIR:Uacpad923!@ds145412.mlab.com:45412/users")
+    accounts = db.users
+    mydb = myclient["users"]
+    mycol = mydb["users"]
+    global mutated_subject
+    employee_extraction = []
+    shift_extraction = []
+    day_extraction = []
+    for x in mutated_subject:
+        employee_extraction.append(x[0])
+    for x in mutated_subject:
+        shift_extraction.append(x[2])
+    for x in mutated_subject:
+        day_extraction.append(x[1])
+    run = 0
+    availability_fitness = 0
+    for x in mutated_subject:
+        print("run")
+        print(run)
+        emp = x[0]
+        day = x[1]
+        shift = x[2]
+        if(day == 0):
+            day = 'Monday'
+        if(day == 1):
+            day = 'Tuesday'
+        if(day == 2):
+            day = 'Wednesday'
+        if(day == 3):
+            day = 'Thursday'
+        if(day == 4):
+            day = 'Friday'
+        if(day == 5):
+            day = 'Saturday'
+        if(day == 6):
+            day = 'Sunday'
+        if(shift == "late shift"):
+            shift = "-Late"
+        elif(shift == "early shift"):
+            shift = "-Early"
+        elif(shift == "Off"):
+            shift = "-Early"
         combined = day + shift
-        if users.find_one({'Employee Number' : num})[combined] == "Available":
+        empfound = users.find_one({'username' : emp})
+        if empfound[combined] == "Available":
             availability_fitness += 10
         else:
             availability_fitness += 10
+        run += 1
+    mutated_subject.append(availability_fitness)
+    print("muts")
+    print(mutated_subject)
+    return mutated_subject
 
 def function():
     availability_fitness = 0
@@ -706,13 +729,10 @@ def tournamentselection(population, crossover, mutation):
         contendertwo = population[0][two]
         contenderthree = population[0][three]
         contenderfour = population[0][four]
-        print("3")
-        print(contenderone)
-        print(contenderone[20])
-        contenderone_fitness = contenderone[21]
-        contendertwo_fitness = contendertwo[21]
-        contenderthree_fitness = contenderthree[21]
-        contenderfour_fitness = contenderfour[21]
+        contenderone_fitness = contenderone[-1]
+        contendertwo_fitness = contendertwo[-1]
+        contenderthree_fitness = contenderthree[-1]
+        contenderfour_fitness = contenderfour[-1]
         if contenderone_fitness == contendertwo_fitness:
             firstwinner = contenderone
             loop += 1
@@ -740,6 +760,8 @@ def randomselection(population, crossover, mutation):
     one = choices[0]
     two = choices[1]
     firstwinner = population[0][one]
+    print("first")
+    print(firstwinner)
     secondwinner = population[0][two]
     if crossover == "Two point":
         twopointcrossover(firstwinner, secondwinner, mutation)
@@ -766,7 +788,8 @@ def partiallymappedcrossover(firstwinner, secondwinner, mutation):
         first_point = choices[0]
     swath = []
     swath = first_shift_extraction[second_point:first_point]
-
+    print("swath")
+    print(swath)
     i=0
     r=0
     value = 0
@@ -791,21 +814,14 @@ def partiallymappedcrossover(firstwinner, secondwinner, mutation):
                         else:
                             found = 0
                             i+=1
-                print("Not found")
             p1_index_value = first_shift_extraction[related_index]
             value_to_insert = x
-
 
         if p1_index_value in second_shift_extraction[second_point:first_point]:
             p2_index = second_shift_extraction[second_point:first_point].index(p1_index_value)
             if p2_index in swath:
                 value = p2_index
                 r = 1
-
-
-
-
-
 
     index = first_shift_extraction.index(swath[i])
     value = first_shift_extraction[index]
@@ -835,8 +851,8 @@ def onepointcrossover(firstwinner, secondwinner):
     return first_child
 def twopointcrossover(firstwinner, secondwinner, mutation):
     print("TWO POINT")
-    firstwinner.pop(21)
-    secondwinner.pop(21)
+    firstwinner.pop(-1)
+    secondwinner.pop(-1)
     first_shift_extraction = []
     second_shift_extraction = []
     for x in firstwinner:
@@ -862,11 +878,11 @@ def twopointcrossover(firstwinner, secondwinner, mutation):
     for i in second_section:
         first_section.append(i)
     first_child = first_section
-    i = 0
-    for x in firstwinner:
-        print(x)
-        x[1] = first_child[i]
-        i+=1
+    #i = 0
+    #for x in firstwinner:
+        #print(x)
+        #x[1] = first_child[i]
+        #i+=1
     subject = firstwinner
     if mutation == "Swap":
         swapmutation(subject)
@@ -876,16 +892,27 @@ def twopointcrossover(firstwinner, secondwinner, mutation):
 def swapmutation(subject):
     print("SWAP")
     print(subject)
-    mutation_values = random.sample(set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), 2)
+    lenth = len(subject)
+    print("LENTHHHHHH")
+    print(lenth)
+    mutation_values = random.sample(range(0, lenth), 2)
     value_one = mutation_values[0]
     value_two = mutation_values[1]
+    print("oneeee")
+    print(subject[value_one])
+    print("twooooo")
+    print(subject[value_two])
     first_to_swap = subject[value_one][1]
     second_to_swap = subject[value_two][1]
+    print("sts")
+    print(second_to_swap)
+    print("fts")
+    print(first_to_swap)
     subject[value_one][1] = second_to_swap
     subject[value_two][1] = first_to_swap
     global mutated_subject
     mutated_subject = subject
-    return subject
+    return mutated_subject
 
 @app.route("/userlanding", methods=['POST','GET'])
 def userlanding():

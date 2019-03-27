@@ -3115,9 +3115,9 @@ fieldset[disabled] .btn-default.focus {
   background-color: #333;
 }
 .btn-primary {
-  color: #fff;
-  background-color: #337ab7;
-  border-color: #2e6da4;
+  color: #777;
+  background-color: #777;
+  border-color: #777;
 }
 .btn-primary:focus,
 .btn-primary.focus {
@@ -6851,6 +6851,28 @@ box-shadow: none;
     display: inline-block;
     width: 30px;
     height: 30px;
+}
+.titlef {
+  font-size: 30px;
+  font-family: "Courier New", Courier, monospace;
+  color: #777;
+}
+.desc {
+  font-size: 20px;
+  font-family: "Courier New", Courier, monospace;
+  color: #777;
+}
+.top-buffer { margin-top: 60px;}
+.top-buffer2 { margin-top: 40px;}
+.top-buffer3 { margin-top: 190px;}
+.footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: red;
+  color: white;
+  text-align: center;
 }
 input[type=checkbox] {
     margin: 6px 0 0;
