@@ -3,41 +3,72 @@
 <head>
   <title>Clockwork</title>
 </head>
+<div class="titlef">
+  <div class="container-fluid">
+        <h1 class="display-1" align="center">Clockwork</h1>
+  </div>
+</div>
 <body>
-  <h1>Hello {{ name }},</h1>
-  <form class="form-inline" method="POST" action="/rota">
+<form class="form-inline" method="POST" action="/rota">
+  <div class="row top top-buffer thisf">
+    <div class="pull-left">
+      <p>Selection</p>
+      <select name="Selection" class="selectpicker form-control">
+        <option value="Tournament">Tournament</option>
+        <option value="Random">Random</option>
+      </select>
+      <br><br>
+    </div>
 
-  <div class="pull-left">
-    <select name="Selection" class="selectpicker form-control">
-      <option value="Tournament">Tournament</option>
-      <option value="Random">Random</option>
-    </select>
-    <br><br>
+    <div class="pull-left">
+      <p>Crossover</p>
+      <select name="Crossover" class="selectpicker form-control">
+        <option value="Two point">Two point</option>
+        <option value="Partially mapped">Partially mapped</option>
+      </select>
+      <br><br>
+    </div>
+
+
+    <div class="pull-left">
+      <p>Mutation</p>
+      <select name="Mutation" class="selectpicker form-control">
+        <option value="Swap">Swap</option>
+        <option value="Inverse">Inverse</option>
+      </select>
+      <br><br>
+    </div>
   </div>
+  <div class="pull-right">
+    <table>
+    <thead><tr><th>Selection</th></thead>
+    <tbody>
+    <tr><td>Tournament: </td><td>Tournament selection works by taking a pre set number of chromeasonesfrom the population and putting them through a tournament, the victor of which moves onto the crossover stage of the algorithm.</td></tr>
+    <tr><td>Random: </td><td> Random selection selects randomly from the population to gothrough mutation or crossover.  The issue with random selection is that thereis no selection pressure towards fitter individuals and therefore this strategyis usually avoided</td></tr>
+    </tbody>
+    </table>
 
-  <div class="centre">
-    <select name="Crossover" class="selectpicker form-control">
-      <option value="Two point">Two point</option>
-      <option value="Partially mapped">Partially mapped</option>
-    </select>
-    <br><br>
+    <table>
+    <thead><tr><th>Crossover</th></thead>
+    <tbody>
+    <tr><td>Two point: </td><td>Two crossover points are selected and applied to each parent. To generate a new child, the area between the two crossover points is swapped between parents. </td></tr>
+    <tr><td>Partially Mapped: </td><td>Partially mapped Crossover offers better performance than most other crossover techniques but is difficult to implement. Basically, parent 1 donates a swath of genetic material and the corresponding swath from the other parent is sprinkled about in the child. Once that is done, the remaining alleles are copied direct from parent 2. It is more complicated to implement than other operators but can offer higher performance.</td></tr>
+    </tbody>
+    </table>
+
+    <table>
+    <thead><tr><th>Mutation</th></thead>
+    <tbody>
+    <tr><td>Swap: </td><td>Swap mutation is one of the simplest mutation operators to implement. Swap mutation simply takes two elements from each parent solution and swaps them to create a new offspring. Since swap only mutates two values in the solution it does not introduce much diversity into the solution.</td></tr>
+    <tr><td>Inverse: </td><td>Inverse is similar to two point crossover, in the sense that it takes a two points in a solution to work with. Once the section to be mutated has been created, it is reversed and re-entered back into the solution. This method introduces more diversity into the population but could also result in the current solution developing a lower fitness than the next best solution.</td></tr>
+    </tbody>
+    </table>
   </div>
-
-
-  <div class="centre">
-    <select name="Mutation" class="selectpicker form-control">
-      <option value="Swap">Swap</option>
-      <option value="Inverse">Inverse</option>
-    </select>
-    <br><br>
-  </div>
-
-
+  <div class = "top-buffer3">
     <div class="pull-right">
       <input type="submit" class ="btn btn-primary"  style="margin-top:-1.8%;" value="Generate">
-    </div>
-    </form>
-<div class = "top-buffer3">
+  </div>
+  </form>
   <table>
   <thead><tr><th>Stats</th></thead>
   <tbody>

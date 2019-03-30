@@ -376,7 +376,9 @@ def inversemutation(subject):
     for x in subject:
         x[1] = first_part[i]
         i+=1
-    return subject
+    global mutated_subject
+    mutated_subject = subject
+    return mutated_subject
 mutated_subject = None
 @app.route("/rota", methods=['POST','GET'])
 def generaterota():
@@ -419,8 +421,6 @@ def generaterota():
             if self._solution_count in self._solutions:
                 print('Solution %i' % self._solution_count)
                 i=0
-                print(i)
-                print("i")
                 for d in range(self._number_of_days):
                     if(d == 0):
                         day = 'Monday'
@@ -468,16 +468,10 @@ def generaterota():
                                     combined = day + shift
                                     print(ename + ' works the ' + s)
                                     if users.find_one({'username' : ename})[combined] == "Not Available":
-                                        print("a")
                                         availability_fitness -= 10
                                     else:
-                                        print("aa")
                                         availability_fitness += 10
-                                        print("aaa")
                                         shiftsmet +=1
-                                        print("aaaa")
-                                    print(availability_fitness)
-                                    print("avup")
                                     thisrota.append([ename,d,s])
                             if not is_working:
                                 print('{} does not work'.format(ename))
@@ -587,8 +581,6 @@ def generaterota():
     shiftfitness = shiftsmet/outof
     #fitness(outof, conflicts, shiftsmet)
     population.append(holdingcell)
-    print("population")
-    print(population)
     thisrota[:] = []
     solution_count = 0
     list_of_solutions = []
@@ -611,22 +603,14 @@ def generaterota():
         print("Solution")
         print(solution_count)
         global mutated_subject
-        print(mutated_subject)
         advanced_fitness()
-        print("after")
-        print(mutated_subject)
         fitlist = []
         i = 0
         for x in population:
-            print("x")
-            print(x)
-            print(x[i])
             fitlist.append(x[i][-1])
             i+=1
         min_fit_index = fitlist.index(min(fitlist))
         min_fit = min(fitlist)
-        print("ms")
-        print(mutated_subject)
         fit = mutated_subject[-1]
         if fit > min_fit:
             population[0][min_fit_index] = mutated_subject
@@ -637,8 +621,12 @@ def generaterota():
         time_s = time_s + seconds
         average = time_s/50
     print("DONE")
+    print("Time")
+    print(time_s)
     print("Average time")
     print(average)
+    print("Fitness")
+    print(fit)
     #fitness(outof, conflicts, shiftsmet,generation, time, thisrota)
     #thisfitness = fitness(outof, conflicts, shiftsmet, generation, time, thisrota)
     #if thisfitness > 0:
@@ -669,7 +657,7 @@ def advanced_fitness():
     run = 0
     availability_fitness = 0
     for x in mutated_subject:
-        print("run")
+        print("Run")
         print(run)
         emp = x[0]
         day = x[1]
@@ -702,8 +690,6 @@ def advanced_fitness():
             availability_fitness += 10
         run += 1
     mutated_subject.append(availability_fitness)
-    print("muts")
-    print(mutated_subject)
     return mutated_subject
 
 def function():
@@ -724,7 +710,6 @@ def tournamentselection(population, crossover, mutation):
         two = choices[1]
         three = choices[2]
         four = choices[3]
-        print(population[0][1])
         contenderone = population[0][one]
         contendertwo = population[0][two]
         contenderthree = population[0][three]
@@ -760,8 +745,6 @@ def randomselection(population, crossover, mutation):
     one = choices[0]
     two = choices[1]
     firstwinner = population[0][one]
-    print("first")
-    print(firstwinner)
     secondwinner = population[0][two]
     if crossover == "Two point":
         twopointcrossover(firstwinner, secondwinner, mutation)
@@ -771,6 +754,7 @@ def randomselection(population, crossover, mutation):
 
 def partiallymappedcrossover(firstwinner, secondwinner, mutation):
     print("PARTIALY MAPPED")
+    child = []
     firstwinner.pop(21)
     secondwinner.pop(21)
     first_shift_extraction = []
@@ -779,7 +763,7 @@ def partiallymappedcrossover(firstwinner, secondwinner, mutation):
         first_shift_extraction.append(x[1])
     for x in secondwinner:
         second_shift_extraction.append(x[1])
-    choices = random.sample(set([1,6,11,16,20]), 2)
+    choices = random.sample(set([1,6,11]), 2)
     if choices[0]>choices[1]:
         second_point = choices[0]
         first_point = choices[1]
@@ -787,12 +771,13 @@ def partiallymappedcrossover(firstwinner, secondwinner, mutation):
         second_point = choices[1]
         first_point = choices[0]
     swath = []
-    swath = first_shift_extraction[second_point:first_point]
-    print("swath")
-    print(swath)
+    swath = first_shift_extraction[first_point:second_point]
+    lenth_of_swath = len(swath)
     i=0
     r=0
     value = 0
+    terminate = 0
+    found = 0
     while terminate == 0:
         if r != 0:
             p1_value = swath[p2_index]
@@ -806,23 +791,29 @@ def partiallymappedcrossover(firstwinner, secondwinner, mutation):
             while found == 0:
                 for v in swath:
                     swath_value = swath[i]
-                    for x in second_shift_extraction[second_point:first_point]:
+                    for x in second_shift_extraction[first_point:second_point]:
                         if swath_value != x:
                             related_value = x #to insert
                             related_index = second_shift_extraction.index(related_value)
                             found = 1
                         else:
                             found = 0
-                            i+=1
+                            if i == lenth_of_swath -1:
+                                terminate = 1
+                            else:
+                                i+=1
             p1_index_value = first_shift_extraction[related_index]
             value_to_insert = x
 
-        if p1_index_value in second_shift_extraction[second_point:first_point]:
-            p2_index = second_shift_extraction[second_point:first_point].index(p1_index_value)
+        if p1_index_value in second_shift_extraction[first_point:second_point]:
+            p2_index = second_shift_extraction[first_point:second_point].index(p1_index_value)
             if p2_index in swath:
                 value = p2_index
                 r = 1
-
+    si = first_shift_extraction.index(swath[0])
+    for s in swath:
+        child.insert(si, s)
+        si += 1
     index = first_shift_extraction.index(swath[i])
     value = first_shift_extraction[index]
 
@@ -837,7 +828,6 @@ def partiallymappedcrossover(firstwinner, secondwinner, mutation):
 def onepointcrossover(firstwinner, secondwinner):
     first_shift_extraction = []
     first_shift_extraction = [item[0] for item in firstwinner]
-    print(first_shift_extraction)
     second_shift_extraction = [x[1] for x in secondwinner[0]]
     crossover_value = random.randint(1,19)
     firsthalf = first_shift_extraction[0:crossover_value]
@@ -891,23 +881,12 @@ def twopointcrossover(firstwinner, secondwinner, mutation):
     return first_child
 def swapmutation(subject):
     print("SWAP")
-    print(subject)
     lenth = len(subject)
-    print("LENTHHHHHH")
-    print(lenth)
     mutation_values = random.sample(range(0, lenth), 2)
     value_one = mutation_values[0]
     value_two = mutation_values[1]
-    print("oneeee")
-    print(subject[value_one])
-    print("twooooo")
-    print(subject[value_two])
     first_to_swap = subject[value_one][1]
     second_to_swap = subject[value_two][1]
-    print("sts")
-    print(second_to_swap)
-    print("fts")
-    print(first_to_swap)
     subject[value_one][1] = second_to_swap
     subject[value_two][1] = first_to_swap
     global mutated_subject

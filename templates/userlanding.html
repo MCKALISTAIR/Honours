@@ -3,14 +3,26 @@
 <head>
   <title>Clockwork</title>
 </head>
-
-
-<div class="container-fluid">
-      <p class="text-center">Clockwork</p>
+<div class="titlef">
+  <div class="container-fluid">
+        <h1 class="display-1" align="center">Clockwork</h1>
+  </div>
 </div>
-<p>Hello, {{ name }}</p>
-<div class="">
-<a href="/workeravailability" class ="btn btn-primary"  style="margin-top:-1.8%;">Set Availability</a>
-</div>
+<body>
+  <div class="titlef">
+    <div class="container-fluid">
+          <h1 class="display-1">Hello {{ name }}</h1>
+    </div>
+  </div>
 
+<div class="row top top-buffer">
+  <div class="pull-right">
+  <a href="/generate" class ="btn btn-primary"  style="margin-top:-1.8%;">Create a schedule</a>
+  </div>
+
+  <div class="pull-left">
+<a href="/workeravailability" class ="btn btn-primary"  style="margin-top:-1.8%;">Set your Availability</a>
+  </div>
+</div>
+</body>
 {% endblock %}
